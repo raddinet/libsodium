@@ -6,9 +6,25 @@
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebugDLL|ARM64">
+      <Configuration>DebugDLL</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="DebugDLL|Win32">
       <Configuration>DebugDLL</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugLIB|ARM64">
+      <Configuration>DebugLIB</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugLTCG|ARM64">
+      <Configuration>DebugLTCG</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseDLL|ARM64">
+      <Configuration>ReleaseDLL</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="ReleaseDLL|Win32">
       <Configuration>ReleaseDLL</Configuration>
@@ -25,6 +41,10 @@
     <ProjectConfiguration Include="DebugLTCG|Win32">
       <Configuration>DebugLTCG</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseLTCG|ARM64">
+      <Configuration>ReleaseLTCG</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="ReleaseLTCG|Win32">
       <Configuration>ReleaseLTCG</Configuration>
@@ -45,6 +65,10 @@
     <ProjectConfiguration Include="ReleaseLIB|Win32">
       <Configuration>ReleaseLIB</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseLIB|ARM64">
+      <Configuration>ReleaseLIB</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="DebugLIB|x64">
       <Configuration>DebugLIB</Configuration>
