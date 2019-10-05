@@ -14,6 +14,13 @@
     <ClCompile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
+    <Link>
+      <SwapRunFromNET>true</SwapRunFromNET>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ProgramDatabaseFile />
+      <StripPrivateSymbols>/PDBSTRIPPED</StripPrivateSymbols>
+      <AdditionalOptions>/EMITPOGOPHASEINFO %(AdditionalOptions)</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
 
 </Project>
