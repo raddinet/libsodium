@@ -2,20 +2,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__ARM_NEON_FP) || defined(__aarch64__)
+#include "core.h"
+#include "crypto_aead_aegis256.h"
+#include "crypto_verify_16.h"
+#include "export.h"
+#include "randombytes.h"
+#include "runtime.h"
+#include "utils.h"
+
+#include "private/common.h"
+
+#ifdef HAVE_ARMCRYPTO
+
 # include <arm_neon.h>
 
 static inline void
 crypto_aead_aegis256_update(uint8x16_t *const state, const uint8x16_t data)
 {
-    uint8x16_t tmp;
+    const uint8x16_t zero = vmovq_n_u8(0);
+    uint8x16_t       tmp;
 
-    tmp      = vaesmcq_u8(vaeseq_u8(state[5], state[0]));
-    state[5] = vaesmcq_u8(vaeseq_u8(state[4], state[5]));
-    state[4] = vaesmcq_u8(vaeseq_u8(state[3], state[4]));
-    state[3] = vaesmcq_u8(vaeseq_u8(state[2], state[3]));
-    state[2] = vaesmcq_u8(vaeseq_u8(state[1], state[2]));
-    state[1] = vaesmcq_u8(vaeseq_u8(state[0], state[1]));
+    tmp      = veorq_u8(vaesmcq_u8(vaeseq_u8(state[5], zero)), state[0]);
+    state[5] = veorq_u8(vaesmcq_u8(vaeseq_u8(state[4], zero)), state[5]);
+    state[4] = veorq_u8(vaesmcq_u8(vaeseq_u8(state[3], zero)), state[4]);
+    state[3] = veorq_u8(vaesmcq_u8(vaeseq_u8(state[2], zero)), state[3]);
+    state[2] = veorq_u8(vaesmcq_u8(vaeseq_u8(state[1], zero)), state[2]);
+    state[1] = veorq_u8(vaesmcq_u8(vaeseq_u8(state[0], zero)), state[1]);
     state[0] = veorq_u8(tmp, data);
 }
 
@@ -24,12 +36,12 @@ crypto_aead_aegis256_init(const unsigned char *key, const unsigned char *iv,
                           uint8x16_t *const state)
 {
     static CRYPTO_ALIGN(16) const unsigned char c1[] = {
-        0xdd, 0x28, 0xb5, 0x73, 0x42, 0x31, 0x11, 0x20, 0xf1, 0x2f, 0xc2, 0x6d,
-        0x55, 0x18, 0x3d, 0xdb
+        0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1, 0x20, 0x11, 0x31, 0x42,
+        0x73, 0xb5, 0x28, 0xdd
     };
     static CRYPTO_ALIGN(16) const unsigned char c2[] = {
-        0x62, 0x79, 0xe9, 0x90, 0x59, 0x37, 0x22, 0x15, 0x0d, 0x08, 0x05, 0x03,
-        0x02, 0x01, 0x01, 0x00
+        0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d, 0x15, 0x22, 0x37, 0x59,
+        0x90, 0xe9, 0x79, 0x62
     };
     uint8x16_t k1;
     uint8x16_t k2;
@@ -62,7 +74,7 @@ crypto_aead_aegis256_mac(unsigned char *mac, unsigned long long mlen,
                          unsigned long long adlen, uint8x16_t *const state)
 {
     uint8x16_t tmp;
-    int     i;
+    int        i;
 
     tmp = vreinterpretq_u8_u64(vsetq_lane_u64(mlen << 3,
                                               vmovq_n_u64(adlen << 3), 1));
@@ -267,4 +279,11 @@ crypto_aead_aegis256_decrypt(unsigned char *m, unsigned long long *mlen_p, unsig
     }
     return ret;
 }
+
+int
+crypto_aead_aegis256_is_available(void)
+{
+    return sodium_runtime_has_aesni();
+}
+
 #endif

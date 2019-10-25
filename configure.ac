@@ -366,6 +366,20 @@ dnl Checks for headers
 
 AS_IF([test "x$EMSCRIPTEN" = "x"], [
 
+  AS_IF([test "$host_cpu" = "aarch64"], [
+    oldcflags="$CFLAGS"
+    AX_CHECK_COMPILE_FLAG([-march=armv8-a+crypto], [CFLAGS="$CFLAGS -march=armv8-a+crypto"])
+    AC_MSG_CHECKING(for ARM crypto instructions set)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <arm_neon.h>
+]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
+      [AC_MSG_RESULT(yes)
+       AC_DEFINE([HAVE_ARMCRYPTO], [1], [ARM crypto extensions are available])
+       AX_CHECK_COMPILE_FLAG([-march=armv8-a+crypto], [CFLAGS_ARMCRYPTO="-march=armv8-a+crypto"])],
+      [AC_MSG_RESULT(no)])
+    CFLAGS="$oldcflags"
+  ])
+
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mmmx], [CFLAGS="$CFLAGS -mmmx"])
   AC_MSG_CHECKING(for MMX instructions set)
@@ -542,6 +556,7 @@ __m512i y = _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 1, 4, 5, 2, 3, 6, 7), 
 
 ])
 
+AC_SUBST(CFLAGS_ARMCRYPTO)
 AC_SUBST(CFLAGS_MMX)
 AC_SUBST(CFLAGS_SSE2)
 AC_SUBST(CFLAGS_SSE3)
@@ -554,7 +569,7 @@ AC_SUBST(CFLAGS_AESNI)
 AC_SUBST(CFLAGS_PCLMUL)
 AC_SUBST(CFLAGS_RDRAND)
 
-AC_CHECK_HEADERS([sys/mman.h sys/random.h intrin.h])
+AC_CHECK_HEADERS([sys/mman.h sys/random.h intrin.h sys/auxv.h])
 
 AC_MSG_CHECKING([if _xgetbv() is available])
 AC_LINK_IFELSE(
@@ -791,7 +806,9 @@ AS_IF([test "x$EMSCRIPTEN" = "x"],[
 #endif
 ]], [[
 unsigned char buf;
-(void) getrandom((void *) &buf, 1U, 0U);
+if (&getrandom != NULL) {
+  (void) getrandom((void *) &buf, 1U, 0U);
+}
   ]])],
   [AC_MSG_RESULT(yes)
    AC_CHECK_FUNCS([getrandom])],
@@ -809,7 +826,9 @@ unsigned char buf;
 #endif
 ]], [[
 unsigned char buf;
-(void) getentropy((void *) &buf, 1U);
+if (&getentropy != NULL) {
+  (void) getentropy((void *) &buf, 1U);
+}
   ]])],
   [AC_MSG_RESULT(yes)
    AC_CHECK_FUNCS([getentropy])],
@@ -818,6 +837,7 @@ unsigned char buf;
 ])
 AC_CHECK_FUNCS([posix_memalign getpid nanosleep])
 AC_CHECK_FUNCS([memset_s explicit_bzero explicit_memset])
+AC_CHECK_FUNCS([getauxval])
 
 AC_SUBST([LIBTOOL_EXTRA_FLAGS])
 
