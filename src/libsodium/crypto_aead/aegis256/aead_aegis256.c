@@ -4,6 +4,8 @@
 
 #include "crypto_aead_aegis256.h"
 
+#include "private/common.h"
+
 size_t
 crypto_aead_aegis256_keybytes(void)
 {
