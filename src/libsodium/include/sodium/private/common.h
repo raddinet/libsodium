@@ -252,6 +252,7 @@ xor_buf(unsigned char *out, const unsigned char *in, size_t n)
 
 #if defined(_MSC_VER) && defined(_M_ARM64)
 # define __ARM_ARCH
+# define __ARM_NEON 1
 # define __ARM_FEATURE_CRYPTO 1
 # define HAVE_ARMCRYPTO 1
 #endif
