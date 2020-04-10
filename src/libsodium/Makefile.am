@@ -74,6 +74,7 @@ libsodium_la_SOURCES = \
 	crypto_sign/ed25519/ref10/open.c \
 	crypto_sign/ed25519/ref10/sign.c \
 	crypto_sign/ed25519/ref10/sign_ed25519_ref10.h \
+	crypto_stream/blabla2000/stream_blabla2000.c \
 	crypto_stream/chacha20/stream_chacha20.c \
 	crypto_stream/chacha20/stream_chacha20.h \
 	crypto_stream/chacha20/ref/chacha20_ref.h \
@@ -130,8 +131,7 @@ noinst_HEADERS = \
 	crypto_scalarmult/curve25519/sandy2x/fe51_mul.S \
 	crypto_scalarmult/curve25519/sandy2x/fe51_nsquare.S \
 	crypto_scalarmult/curve25519/sandy2x/fe51_pack.S \
-	crypto_scalarmult/curve25519/sandy2x/ladder.S \
-	crypto_scalarmult/curve25519/sandy2x/ladder_base.S
+	crypto_scalarmult/curve25519/sandy2x/ladder.S
 
 if HAVE_AVX_ASM
 libsodium_la_SOURCES += \
@@ -144,8 +144,6 @@ libsodium_la_SOURCES += \
 	crypto_scalarmult/curve25519/sandy2x/fe51_namespace.h \
 	crypto_scalarmult/curve25519/sandy2x/fe_frombytes_sandy2x.c \
 	crypto_scalarmult/curve25519/sandy2x/ladder.h \
-	crypto_scalarmult/curve25519/sandy2x/ladder_base.h \
-	crypto_scalarmult/curve25519/sandy2x/ladder_base_namespace.h \
 	crypto_scalarmult/curve25519/sandy2x/ladder_namespace.h \
 	crypto_scalarmult/curve25519/sandy2x/sandy2x.S
 endif
@@ -156,6 +154,8 @@ libsodium_la_SOURCES += \
 	crypto_box/curve25519xchacha20poly1305/box_seal_curve25519xchacha20poly1305.c \
 	crypto_core/ed25519/core_ed25519.c \
 	crypto_core/ed25519/core_ristretto255.c \
+	crypto_kdf/hkdf/kdf_hkdf_sha256.c \
+	crypto_kdf/hkdf/kdf_hkdf_sha512.c \
 	crypto_pwhash/scryptsalsa208sha256/crypto_scrypt-common.c \
 	crypto_pwhash/scryptsalsa208sha256/crypto_scrypt.h \
 	crypto_pwhash/scryptsalsa208sha256/scrypt_platform.c \
@@ -168,7 +168,6 @@ libsodium_la_SOURCES += \
 	crypto_secretbox/xchacha20poly1305/secretbox_xchacha20poly1305.c \
 	crypto_shorthash/siphash24/shorthash_siphashx24.c \
 	crypto_shorthash/siphash24/ref/shorthash_siphashx24_ref.c \
-	crypto_sign/ed25519/ref10/obsolete.c \
 	crypto_stream/salsa2012/ref/stream_salsa2012_ref.c \
 	crypto_stream/salsa2012/stream_salsa2012.c \
 	crypto_stream/salsa208/ref/stream_salsa208_ref.c \

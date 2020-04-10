@@ -50,17 +50,12 @@
 # include "../crypto_scrypt.h"
 # include "../pbkdf2-sha256.h"
 
-# if defined(__XOP__) && defined(DISABLED)
-#  define ARX(out, in1, in2, s) \
-    out = _mm_xor_si128(out, _mm_roti_epi32(_mm_add_epi32(in1, in2), s));
-# else
-#  define ARX(out, in1, in2, s)                                    \
+# define ARX(out, in1, in2, s)                                     \
     {                                                              \
         __m128i T = _mm_add_epi32(in1, in2);                       \
         out       = _mm_xor_si128(out, _mm_slli_epi32(T, s));      \
         out       = _mm_xor_si128(out, _mm_srli_epi32(T, 32 - s)); \
     }
-# endif
 
 # define SALSA20_2ROUNDS              \
     /* Operate on "columns". */       \
@@ -85,7 +80,7 @@
     X2 = _mm_shuffle_epi32(X2, 0x4E); \
     X3 = _mm_shuffle_epi32(X3, 0x93);
 
-/**
+/*
  * Apply the salsa20/8 core to the block provided in (X0 ... X3) ^ (Z0 ... Z3).
  */
 # define SALSA20_8_XOR(in, out)                               \
@@ -103,10 +98,11 @@
         (out)[3] = X3 = _mm_add_epi32(X3, Y3);                \
     }
 
-/**
+/*
  * blockmix_salsa8(Bin, Bout, r):
- * Compute Bout = BlockMix_{salsa20/8, r}(Bin).  The input Bin must be 128r
- * bytes in length; the output Bout must also be the same size.
+ * Compute Bout = BlockMix_{salsa20/8, r}(Bin).
+ * The input Bin must be 128r bytes in length;
+ * the output Bout must also be the same size.
  */
 static inline void
 blockmix_salsa8(const __m128i *Bin, __m128i *Bout, size_t r)
@@ -208,18 +204,20 @@ blockmix_salsa8_xor(const __m128i *Bin1, const __m128i *Bin2, __m128i *Bout,
 # undef XOR4
 # undef XOR4_2
 
-/**
+/*
  * integerify(B, r):
  * Return the result of parsing B_{2r-1} as a little-endian integer.
  * Note that B's layout is permuted compared to the generic implementation.
  */
-static inline uint32_t
+static inline uint64_t
 integerify(const void *B, size_t r)
 {
-    return *(const uint32_t *) ((uintptr_t)(B) + (2 * r - 1) * 64);
+    const uint64_t *X = ((const uint64_t *) B) + (2 * r - 1) * 8;
+
+    return *X;
 }
 
-/**
+/*
  * smix(B, r, N, V, XY):
  * Compute B = SMix_r(B, N).  The input B must be 128r bytes in length;
  * the temporary storage V must be 128rN bytes in length; the temporary
@@ -228,12 +226,12 @@ integerify(const void *B, size_t r)
  * multiple of 64 bytes.
  */
 static void
-smix(uint8_t *B, size_t r, uint32_t N, void *V, void *XY)
+smix(uint8_t *B, size_t r, uint64_t N, void *V, void *XY)
 {
     size_t    s   = 128 * r;
-    __m128i * X   = (__m128i *) V, *Y;
+    __m128i  *X   = (__m128i *) V, *Y;
     uint32_t *X32 = (uint32_t *) V;
-    uint32_t  i, j;
+    uint64_t  i, j;
     size_t    k;
 
     /* 1: X <-- B */
@@ -295,7 +293,7 @@ smix(uint8_t *B, size_t r, uint32_t N, void *V, void *XY)
     }
 }
 
-/**
+/*
  * escrypt_kdf(local, passwd, passwdlen, salt, saltlen,
  *     N, r, p, buf, buflen):
  * Compute scrypt(passwd[0 .. passwdlen - 1], salt[0 .. saltlen - 1], N, r,
@@ -388,7 +386,7 @@ escrypt_kdf_sse(escrypt_local_t *local, const uint8_t *passwd, size_t passwdlen,
     /* 2: for i = 0 to p - 1 do */
     for (i = 0; i < p; i++) {
         /* 3: B_i <-- MF(B_i, N) */
-        smix(&B[(size_t) 128 * i * r], r, (uint32_t) N, V, XY);
+        smix(&B[(size_t) 128 * i * r], r, N, V, XY);
     }
 
     /* 5: DK <-- PBKDF2(P, B, 1, dkLen) */

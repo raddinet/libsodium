@@ -16,6 +16,7 @@ EXTRA_DIST = \
 	auth5.exp \
 	auth6.exp \
 	auth7.exp \
+	blabla2000.exp \
 	box.exp \
 	box2.exp \
 	box7.exp \
@@ -27,6 +28,7 @@ EXTRA_DIST = \
 	chacha20.exp \
 	codecs.exp \
 	core_ed25519.exp \
+	core_ed25519_h2c.exp \
 	core_ristretto255.exp \
 	core1.exp \
 	core2.exp \
@@ -42,6 +44,7 @@ EXTRA_DIST = \
 	hash2.exp \
 	hash3.exp \
 	kdf.exp \
+	kdf_hkdf.exp \
 	keygen.exp \
 	kx.exp \
 	metamorphic.exp \
@@ -97,6 +100,7 @@ DISTCLEANFILES = \
 	auth5.res \
 	auth6.res \
 	auth7.res \
+	blabla2000.res \
 	box.res \
 	box2.res \
 	box7.res \
@@ -108,6 +112,7 @@ DISTCLEANFILES = \
 	chacha20.res \
 	codecs.res \
 	core_ed25519.res \
+	core_ed25519_h2c.res \
 	core_ristretto255.res \
 	core1.res \
 	core2.res \
@@ -123,6 +128,7 @@ DISTCLEANFILES = \
 	hash2.res \
 	hash3.res \
 	kdf.res \
+	kdf_hkdf.res \
 	keygen.res \
 	kx.res \
 	metamorphic.res \
@@ -188,6 +194,7 @@ TESTS_TARGETS = \
 	auth5 \
 	auth6 \
 	auth7 \
+	blabla2000 \
 	box \
 	box2 \
 	box7 \
@@ -294,6 +301,9 @@ auth6_LDADD               = $(TESTS_LDADD)
 auth7_SOURCE              = cmptest.h auth7.c quirks.h
 auth7_LDADD               = $(TESTS_LDADD)
 
+blabla2000_SOURCE         = cmptest.h blabla2000.c
+blabla2000_LDADD          = $(TESTS_LDADD)
+
 box_SOURCE                = cmptest.h box.c
 box_LDADD                 = $(TESTS_LDADD)
 
@@ -326,6 +336,9 @@ codecs_LDADD              = $(TESTS_LDADD)
 
 core_ed25519_SOURCE       = cmptest.h core_ed25519.c
 core_ed25519_LDADD        = $(TESTS_LDADD)
+
+core_ed25519_h2c_SOURCE   = cmptest.h core_ed25519_h2c.c
+core_ed25519_h2c_LDADD    = $(TESTS_LDADD)
 
 core_ristretto255_SOURCE  = cmptest.h core_ristretto255.c
 core_ristretto255_LDADD   = $(TESTS_LDADD)
@@ -368,6 +381,9 @@ hash3_LDADD               = $(TESTS_LDADD)
 
 kdf_SOURCE                = cmptest.h kdf.c
 kdf_LDADD                 = $(TESTS_LDADD)
+
+kdf_hkdf_SOURCE            = cmptest.h kdf_hkdf.c
+kdf_hkdf_LDADD             = $(TESTS_LDADD)
 
 keygen_SOURCE             = cmptest.h keygen.c
 keygen_LDADD              = $(TESTS_LDADD)
@@ -495,7 +511,9 @@ xchacha20_LDADD           = $(TESTS_LDADD)
 if !MINIMAL
 TESTS_TARGETS += \
 	core_ed25519 \
+	core_ed25519_h2c \
 	core_ristretto255 \
+	kdf_hkdf \
 	pwhash_scrypt \
 	pwhash_scrypt_ll \
 	scalarmult_ed25519 \

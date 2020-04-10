@@ -14,10 +14,10 @@ AM_DEP_TRACK
 
 AC_SUBST(VERSION)
 
-SODIUM_LIBRARY_VERSION_MAJOR=10
-SODIUM_LIBRARY_VERSION_MINOR=3
-DLL_VERSION=24
-SODIUM_LIBRARY_VERSION=26:0:3
+SODIUM_LIBRARY_VERSION_MAJOR=11
+SODIUM_LIBRARY_VERSION_MINOR=0
+DLL_VERSION=27
+SODIUM_LIBRARY_VERSION=27:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -868,7 +868,6 @@ AS_IF([test "x$ENABLE_CWFLAGS" = "xyes"], [
 
 AC_CONFIG_FILES([Makefile
                  builds/Makefile
-                 contrib/Makefile
                  dist-build/Makefile
                  libsodium.pc
                  libsodium-uninstalled.pc
