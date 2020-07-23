@@ -38,7 +38,7 @@ crypto_core_ed25519_add(unsigned char *r,
         return -1;
     }
     ge25519_p3_to_cached(&q_cached, &q_p3);
-    ge25519_add(&r_p1p1, &p_p3, &q_cached);
+    ge25519_add_cached(&r_p1p1, &p_p3, &q_cached);
     ge25519_p1p1_to_p3(&r_p3, &r_p1p1);
     ge25519_p3_tobytes(r, &r_p3);
 
@@ -58,7 +58,7 @@ crypto_core_ed25519_sub(unsigned char *r,
         return -1;
     }
     ge25519_p3_to_cached(&q_cached, &q_p3);
-    ge25519_sub(&r_p1p1, &p_p3, &q_cached);
+    ge25519_sub_cached(&r_p1p1, &p_p3, &q_cached);
     ge25519_p1p1_to_p3(&r_p3, &r_p1p1);
     ge25519_p3_tobytes(r, &r_p3);
 
@@ -92,6 +92,7 @@ _string_to_points(unsigned char * const px, size_t n,
     if (n > 2U) {
         abort(); /* LCOV_EXCL_LINE */
     }
+    COMPILER_ASSERT(2U * HASH_L <= 0xff);
     if (ctx_len > (size_t) 0xff) {
         crypto_hash_sha512_init(&st);
         crypto_hash_sha512_update(&st,
@@ -268,6 +269,12 @@ crypto_core_ed25519_scalar_reduce(unsigned char *r,
     sc25519_reduce(t);
     memcpy(r, t, crypto_core_ed25519_SCALARBYTES);
     sodium_memzero(t, sizeof t);
+}
+
+int
+crypto_core_ed25519_scalar_is_canonical(const unsigned char *s)
+{
+    return sc25519_is_canonical(s);
 }
 
 size_t

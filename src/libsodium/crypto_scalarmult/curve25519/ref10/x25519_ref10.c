@@ -17,7 +17,7 @@ static int
 has_small_order(const unsigned char s[32])
 {
     CRYPTO_ALIGN(16)
-    static const unsigned char blacklist[][32] = {
+    static const unsigned char blocklist[][32] = {
         /* 0 (order 4) */
         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -53,17 +53,17 @@ has_small_order(const unsigned char s[32])
     unsigned int  k;
     size_t        i, j;
 
-    COMPILER_ASSERT(7 == sizeof blacklist / sizeof blacklist[0]);
+    COMPILER_ASSERT(7 == sizeof blocklist / sizeof blocklist[0]);
     for (j = 0; j < 31; j++) {
-        for (i = 0; i < sizeof blacklist / sizeof blacklist[0]; i++) {
-            c[i] |= s[j] ^ blacklist[i][j];
+        for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
+            c[i] |= s[j] ^ blocklist[i][j];
         }
     }
-    for (i = 0; i < sizeof blacklist / sizeof blacklist[0]; i++) {
-        c[i] |= (s[j] & 0x7f) ^ blacklist[i][j];
+    for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
+        c[i] |= (s[j] & 0x7f) ^ blocklist[i][j];
     }
     k = 0;
-    for (i = 0; i < sizeof blacklist / sizeof blacklist[0]; i++) {
+    for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
         k |= (c[i] - 1);
     }
     return (int) ((k >> 8) & 1);
@@ -123,7 +123,7 @@ crypto_scalarmult_curve25519_ref10(unsigned char *q,
         fe25519_mul(x2, tmp1, tmp0);
         fe25519_sub(tmp1, tmp1, tmp0);
         fe25519_sq(z2, z2);
-        fe25519_scalar_product(z3, tmp1, 121666);
+        fe25519_mul32(z3, tmp1, 121666);
         fe25519_sq(x3, x3);
         fe25519_add(tmp0, tmp0, z3);
         fe25519_mul(z3, x1, z2);

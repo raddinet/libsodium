@@ -3,6 +3,7 @@ SODIUM_EXPORT = \
 	sodium.h \
 	sodium/core.h \
 	sodium/crypto_aead_aes256gcm.h \
+	sodium/crypto_aead_aegis128l.h \
 	sodium/crypto_aead_aegis256.h \
 	sodium/crypto_aead_chacha20poly1305.h \
 	sodium/crypto_aead_xchacha20poly1305.h \
@@ -49,7 +50,6 @@ SODIUM_EXPORT = \
 	sodium/crypto_sign.h \
 	sodium/crypto_sign_ed25519.h \
 	sodium/crypto_stream.h \
-	sodium/crypto_stream_blabla2000.h \
 	sodium/crypto_stream_chacha20.h \
 	sodium/crypto_stream_salsa20.h \
 	sodium/crypto_stream_salsa2012.h \

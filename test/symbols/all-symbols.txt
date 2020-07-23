@@ -32,6 +32,17 @@ blake2b_long
 blake2b_pick_best_implementation
 blake2b_salt_personal
 blake2b_update
+crypto_aead_aegis128l_abytes
+crypto_aead_aegis128l_decrypt
+crypto_aead_aegis128l_decrypt_detached
+crypto_aead_aegis128l_encrypt
+crypto_aead_aegis128l_encrypt_detached
+crypto_aead_aegis128l_is_available
+crypto_aead_aegis128l_keybytes
+crypto_aead_aegis128l_keygen
+crypto_aead_aegis128l_messagebytes_max
+crypto_aead_aegis128l_npubbytes
+crypto_aead_aegis128l_nsecbytes
 crypto_aead_aegis256_abytes
 crypto_aead_aegis256_decrypt
 crypto_aead_aegis256_decrypt_detached
@@ -200,6 +211,7 @@ crypto_core_ed25519_random
 crypto_core_ed25519_scalar_add
 crypto_core_ed25519_scalar_complement
 crypto_core_ed25519_scalar_invert
+crypto_core_ed25519_scalar_is_canonical
 crypto_core_ed25519_scalar_mul
 crypto_core_ed25519_scalar_negate
 crypto_core_ed25519_scalar_random
@@ -228,6 +240,7 @@ crypto_core_ristretto255_random
 crypto_core_ristretto255_scalar_add
 crypto_core_ristretto255_scalar_complement
 crypto_core_ristretto255_scalar_invert
+crypto_core_ristretto255_scalar_is_canonical
 crypto_core_ristretto255_scalar_mul
 crypto_core_ristretto255_scalar_negate
 crypto_core_ristretto255_scalar_random
@@ -624,7 +637,7 @@ escrypt_r
 fe25519_frombytes
 fe25519_invert
 fe25519_tobytes
-ge25519_add
+ge25519_add_cached
 ge25519_double_scalarmult_vartime
 ge25519_from_hash
 ge25519_from_uniform
@@ -640,7 +653,7 @@ ge25519_p3_to_cached
 ge25519_p3_tobytes
 ge25519_scalarmult
 ge25519_scalarmult_base
-ge25519_sub
+ge25519_sub_cached
 ge25519_tobytes
 randombytes
 randombytes_buf
@@ -685,9 +698,7 @@ sodium_mlock
 sodium_mprotect_noaccess
 sodium_mprotect_readonly
 sodium_mprotect_readwrite
-sodium_mshield
 sodium_munlock
-sodium_munshield
 sodium_pad
 sodium_runtime_has_aesni
 sodium_runtime_has_armcrypto

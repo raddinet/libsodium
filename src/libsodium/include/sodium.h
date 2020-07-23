@@ -6,6 +6,7 @@
 
 #include "sodium/core.h"
 #include "sodium/crypto_aead_aes256gcm.h"
+#include "sodium/crypto_aead_aegis128l.h"
 #include "sodium/crypto_aead_aegis256.h"
 #include "sodium/crypto_aead_chacha20poly1305.h"
 #include "sodium/crypto_aead_xchacha20poly1305.h"
@@ -42,7 +43,6 @@
 #include "sodium/crypto_sign.h"
 #include "sodium/crypto_sign_ed25519.h"
 #include "sodium/crypto_stream.h"
-#include "sodium/crypto_stream_blabla2000.h"
 #include "sodium/crypto_stream_chacha20.h"
 #include "sodium/crypto_stream_salsa20.h"
 #include "sodium/crypto_stream_xsalsa20.h"
