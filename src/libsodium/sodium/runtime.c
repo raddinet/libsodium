@@ -60,11 +60,11 @@ _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
     cpu_features->has_neon = 0;
     cpu_features->has_armcrypto = 0;
 
-#ifndef __ARM_ARCH
+#if !(defined(__ARM_ARCH) || defined(_M_ARM64))
     return -1; /* LCOV_EXCL_LINE */
 #endif
 
-#if defined(__ARM_NEON) || defined(__aarch64__)
+#if defined(__ARM_NEON) || defined(__aarch64__) || defined(_M_ARM64)
     cpu_features->has_neon = 1;
 #elif defined(HAVE_ANDROID_GETCPUFEATURES) && defined(ANDROID_CPU_ARM_FEATURE_NEON)
     cpu_features->has_neon =
@@ -79,7 +79,7 @@ _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
         return 0;
     }
 
-#if __ARM_FEATURE_CRYPTO
+#if __ARM_FEATURE_CRYPTO || defined(_M_ARM64)
     cpu_features->has_armcrypto = 1;
 #elif defined(__APPLE__) && defined(CPU_TYPE_ARM64) && defined(CPU_SUBTYPE_ARM64E)
     {
