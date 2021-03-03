@@ -1,9 +1,12 @@
 
+#include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
+#include "core_h2c.h"
 #include "crypto_core_ed25519.h"
 #include "crypto_core_ristretto255.h"
-#include "crypto_hash_sha512.h"
+#include "crypto_hash_sha256.h"
 #include "private/common.h"
 #include "private/ed25519_ref10.h"
 #include "randombytes.h"
@@ -68,52 +71,18 @@ crypto_core_ristretto255_from_hash(unsigned char *p, const unsigned char *r)
     return 0;
 }
 
-#define HASH_BYTES      crypto_hash_sha512_BYTES
-#define HASH_BLOCKBYTES 128U
-#define HASH_L          crypto_core_ristretto255_HASHBYTES
-
 static int
 _string_to_element(unsigned char *p,
-                   const char *ctx, const unsigned char *msg, size_t msg_len)
+                   const char *ctx, const unsigned char *msg, size_t msg_len,
+                   int hash_alg)
 {
-    crypto_hash_sha512_state st;
-    const unsigned char      empty_block[128] = { 0 };
-    unsigned char            u0[HASH_BYTES];
-    unsigned char            t[3] = { 0U, HASH_L, 0U};
-    unsigned char            ctx_len_u8;
-    size_t                   ctx_len = ctx != NULL ? strlen(ctx) : 0U;
+    unsigned char h[crypto_core_ristretto255_HASHBYTES];
 
-    COMPILER_ASSERT(HASH_L <= 0xff);
-    if (ctx_len > (size_t) 0xff) {
-        crypto_hash_sha512_init(&st);
-        crypto_hash_sha512_update(&st,
-                                  (const unsigned char *) "H2C-OVERSIZE-DST-",
-                                  sizeof "H2C-OVERSIZE-DST-" - 1U);
-        crypto_hash_sha512_update(&st, (const unsigned char *) ctx, ctx_len);
-        crypto_hash_sha512_final(&st, u0);
-        ctx = (const char *) u0;
-        ctx_len = HASH_BYTES;
-        COMPILER_ASSERT(HASH_BYTES <= (size_t) 0xff);
+    if (core_h2c_string_to_hash(h, sizeof h, ctx, msg, msg_len,
+                                hash_alg) != 0) {
+        return -1;
     }
-    ctx_len_u8 = (unsigned char) ctx_len;
-    crypto_hash_sha512_init(&st);
-    crypto_hash_sha512_update(&st, empty_block, sizeof empty_block);
-    crypto_hash_sha512_update(&st, msg, msg_len);
-    crypto_hash_sha512_update(&st, t, 3U);
-    crypto_hash_sha512_update(&st, (const unsigned char *) ctx, ctx_len);
-    crypto_hash_sha512_update(&st, &ctx_len_u8, 1U);
-    crypto_hash_sha512_final(&st, u0);
-
-    t[2]++;
-    crypto_hash_sha512_init(&st);
-    crypto_hash_sha512_update(&st, u0, HASH_BYTES);
-    crypto_hash_sha512_update(&st, &t[2], 1U);
-    crypto_hash_sha512_update(&st, (const unsigned char *) ctx, ctx_len);
-    crypto_hash_sha512_update(&st, &ctx_len_u8, 1U);
-    crypto_hash_sha512_final(&st, u0);
-
-    COMPILER_ASSERT(crypto_core_ristretto255_HASHBYTES == HASH_L);
-    ristretto255_from_hash(p, u0);
+    ristretto255_from_hash(p, h);
 
     return 0;
 }
@@ -121,17 +90,17 @@ _string_to_element(unsigned char *p,
 int
 crypto_core_ristretto255_from_string(unsigned char p[crypto_core_ristretto255_BYTES],
                                      const char *ctx, const unsigned char *msg,
-                                     size_t msg_len)
+                                     size_t msg_len, int hash_alg)
 {
-    return _string_to_element(p, ctx, msg, msg_len);
+    return _string_to_element(p, ctx, msg, msg_len, hash_alg);
 }
 
 int
 crypto_core_ristretto255_from_string_ro(unsigned char p[crypto_core_ristretto255_BYTES],
                                         const char *ctx, const unsigned char *msg,
-                                        size_t msg_len)
+                                        size_t msg_len, int hash_alg)
 {
-    return crypto_core_ristretto255_from_string(p, ctx, msg, msg_len);
+    return crypto_core_ristretto255_from_string(p, ctx, msg, msg_len, hash_alg);
 }
 
 void
@@ -202,6 +171,31 @@ int
 crypto_core_ristretto255_scalar_is_canonical(const unsigned char *s)
 {
     return sc25519_is_canonical(s);
+}
+
+#define HASH_SC_L 48U
+
+int
+crypto_core_ristretto255_scalar_from_string(unsigned char *s,
+                                            const char *ctx, const unsigned char *msg,
+                                            size_t msg_len, int hash_alg)
+{
+    unsigned char h[crypto_core_ristretto255_NONREDUCEDSCALARBYTES];
+    unsigned char h_be[HASH_SC_L];
+    size_t        i;
+
+    if (core_h2c_string_to_hash(h_be, sizeof h_be, ctx, msg, msg_len,
+                                hash_alg) != 0) {
+        return -1;
+    }
+    COMPILER_ASSERT(sizeof h >= sizeof h_be);
+    for (i = 0U; i < HASH_SC_L; i++) {
+        h[i] = h_be[HASH_SC_L - 1U - i];
+    }
+    memset(&h[i], 0, (sizeof h) - i);
+    crypto_core_ristretto255_scalar_reduce(s, h);
+
+    return 0;
 }
 
 size_t
