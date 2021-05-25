@@ -1,12 +1,10 @@
-AC_PREREQ([2.65])
-AC_INIT([libsodium],[1.0.18],
-  [https://github.com/jedisct1/libsodium/issues],
-  [libsodium],
-  [https://github.com/jedisct1/libsodium])
+AC_PREREQ([2.69])
+AC_INIT([libsodium],[1.0.18],[https://github.com/jedisct1/libsodium/issues],[libsodium],[https://libsodium.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libsodium/sodium/version.c])
 AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.11 dist-bzip2 tar-ustar foreign subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
@@ -44,7 +42,7 @@ AS_IF([pwd | fgrep ' ' > /dev/null 2>&1],
   [AC_MSG_ERROR([The build directory contains whitespaces - This can cause tests/installation to fail due to limitations of some libtool versions])]
 )
 
-AC_PROG_CC_C99
+AC_PROG_CC
 AM_PROG_AS
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -119,8 +117,8 @@ AC_ARG_ENABLE(minimal,
 AM_CONDITIONAL([MINIMAL], [test x$enable_minimal = xyes])
 AC_SUBST(SODIUM_LIBRARY_MINIMAL_DEF)
 
-AC_ARG_WITH(pthreads, AC_HELP_STRING([--with-pthreads],
- [use pthreads library, or --without-pthreads to disable threading support.]),
+AC_ARG_WITH(pthreads, AS_HELP_STRING([--with-pthreads],
+ [use pthreads library, or --without-pthreads to disable threading support]),
  [ ], [withval="yes"])
 
 AS_IF([test "x$withval" = "xyes"], [
@@ -260,7 +258,7 @@ int main(void) { return 0; }
 LIBTOOL_OLD_FLAGS="$LIBTOOL_EXTRA_FLAGS"
 LIBTOOL_EXTRA_FLAGS="$LIBTOOL_EXTRA_FLAGS -version-info $SODIUM_LIBRARY_VERSION"
 AC_ARG_ENABLE(soname-versions,
-  [AC_HELP_STRING([--enable-soname-versions], [enable soname versions (must be disabled for Android) (default: enabled)])],
+  [AS_HELP_STRING([--enable-soname-versions], [enable soname versions (must be disabled for Android) (default: enabled)])],
     [
         AS_IF([test "x$enableval" = "xno"], [
           LIBTOOL_EXTRA_FLAGS="$LIBTOOL_OLD_FLAGS -avoid-version"
@@ -366,7 +364,7 @@ dnl Checks for headers and codegen feature flags
 
 target_cpu_aarch64=no
 AC_MSG_CHECKING(for ARM64 target)
-AC_COMPILE_IFELSE(
+AC_LINK_IFELSE(
   [AC_LANG_PROGRAM([
 #ifndef __aarch64__
 #error Not aarch64
@@ -383,7 +381,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   AS_IF([test "x$target_cpu_aarch64" = "xyes"], [
     have_armcrypto=no
     AC_MSG_CHECKING(for ARM crypto instructions set)
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
       [
         AC_MSG_RESULT(yes)
         have_armcrypto=yes
@@ -394,9 +392,9 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
         AX_CHECK_COMPILE_FLAG([-march=armv8-a+crypto], [
           CFLAGS="$CFLAGS -march=armv8-a+crypto"
           AC_MSG_CHECKING(for ARM crypto instructions set with -march=armv8-a+crypto)
-          AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
             [
-              AC_MSG_RESULT(yes)
+              AC_MSG_RESULT(yes - with addition of -march=armv8-a+crypto)
               have_armcrypto=yes
               CFLAGS_ARMCRYPTO="-march=armv8-a+crypto"
             ],
@@ -410,7 +408,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mmmx], [CFLAGS="$CFLAGS -mmmx"])
   AC_MSG_CHECKING(for MMX instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("mmx")
 #include <mmintrin.h>
 ]], [[ __m64 x = _mm_setzero_si64(); ]])],
@@ -423,7 +421,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-msse2], [CFLAGS="$CFLAGS -msse2"])
   AC_MSG_CHECKING(for SSE2 instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("sse2")
 #ifndef __SSE2__
 # define __SSE2__
@@ -440,7 +438,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-msse3], [CFLAGS="$CFLAGS -msse3"])
   AC_MSG_CHECKING(for SSE3 instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("sse3")
 #include <pmmintrin.h>
 ]], [[ __m128 x = _mm_addsub_ps(_mm_cvtpd_ps(_mm_setzero_pd()),
@@ -454,7 +452,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mssse3], [CFLAGS="$CFLAGS -mssse3"])
   AC_MSG_CHECKING(for SSSE3 instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("ssse3")
 #include <tmmintrin.h>
 ]], [[ __m64 x = _mm_abs_pi32(_m_from_int(0)); ]])],
@@ -467,7 +465,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-msse4.1], [CFLAGS="$CFLAGS -msse4.1"])
   AC_MSG_CHECKING(for SSE4.1 instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("sse4.1")
 #include <smmintrin.h>
 ]], [[ __m128i x = _mm_minpos_epu16(_mm_setzero_si128()); ]])],
@@ -480,7 +478,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mavx], [CFLAGS="$CFLAGS -mavx"])
   AC_MSG_CHECKING(for AVX instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("avx")
 #include <immintrin.h>
 ]], [[ _mm256_zeroall(); ]])],
@@ -493,7 +491,7 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mavx2], [CFLAGS="$CFLAGS -mavx2"])
   AC_MSG_CHECKING(for AVX2 instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("avx2")
 #include <immintrin.h>
 ]], [[
@@ -505,7 +503,7 @@ return _mm256_movemask_ps(_mm256_cmp_ps(x, y, _CMP_NEQ_OQ));
      AC_DEFINE([HAVE_AVX2INTRIN_H], [1], [AVX2 is available])
      AX_CHECK_COMPILE_FLAG([-mavx2], [CFLAGS_AVX2="-mavx2"])
      AC_MSG_CHECKING(if _mm256_broadcastsi128_si256 is correctly defined)
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("avx2")
 #include <immintrin.h>
      ]], [[ __m256i y = _mm256_broadcastsi128_si256(_mm_setzero_si128()); ]])],
@@ -520,7 +518,7 @@ return _mm256_movemask_ps(_mm256_cmp_ps(x, y, _CMP_NEQ_OQ));
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mavx512f], [CFLAGS="$CFLAGS -mavx512f"])
   AC_MSG_CHECKING(for AVX512F instructions set)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("avx512f")
 #include <immintrin.h>
 ]], [[
@@ -553,7 +551,7 @@ __m512i y = _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 1, 4, 5, 2, 3, 6, 7), 
   AX_CHECK_COMPILE_FLAG([-maes], [CFLAGS="$CFLAGS -maes"])
   AX_CHECK_COMPILE_FLAG([-mpclmul], [CFLAGS="$CFLAGS -mpclmul"])
   AC_MSG_CHECKING(for AESNI instructions set and PCLMULQDQ)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("aes")
 #pragma GCC target("pclmul")
 #include <wmmintrin.h>
@@ -570,7 +568,7 @@ __m512i y = _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 1, 4, 5, 2, 3, 6, 7), 
   oldcflags="$CFLAGS"
   AX_CHECK_COMPILE_FLAG([-mrdrnd], [CFLAGS="$CFLAGS -mrdrnd"])
   AC_MSG_CHECKING(for RDRAND)
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #pragma GCC target("rdrnd")
 #include <immintrin.h>
 ]], [[ unsigned long long x; _rdrand64_step(&x); ]])],
@@ -620,7 +618,7 @@ AC_C_BIGENDIAN(
 )
 
 AC_MSG_CHECKING(whether __STDC_LIMIT_MACROS is required)
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <limits.h>
 #include <stdint.h>
 ]], [[
@@ -862,9 +860,14 @@ if (&getentropy != NULL) {
   [AC_MSG_RESULT(no)
   ])
 ])
-AC_CHECK_FUNCS([posix_memalign getpid nanosleep])
+
+AS_IF([test "x$WASI" = "x"],[
+  AC_CHECK_FUNCS([getpid])
+  AC_CHECK_FUNCS([getauxva elf_aux_info])
+])
+
+AC_CHECK_FUNCS([posix_memalign nanosleep])
 AC_CHECK_FUNCS([memset_s explicit_bzero explicit_memset])
-AC_CHECK_FUNCS([getauxva elf_aux_info])
 
 AC_SUBST([LIBTOOL_EXTRA_FLAGS])
 
@@ -881,8 +884,7 @@ AC_DEFINE([CONFIGURED], [1], [the build system was properly configured])
 
 dnl Libtool.
 
-LT_INIT([dlopen])
-AC_LIBTOOL_WIN32_DLL
+LT_INIT([dlopen win32-dll])
 gl_LD_OUTPUT_DEF
 
 dnl Output.
