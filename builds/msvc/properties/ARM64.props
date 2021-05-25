@@ -15,7 +15,6 @@
     <Link>
       <TargetMachine>MachineARM64</TargetMachine>
       <SubSystem>Console</SubSystem>
-      <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
       <SwapRunFromCD>true</SwapRunFromCD>
       <SwapRunFromNET>true</SwapRunFromNET>
     </Link>
