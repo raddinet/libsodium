@@ -2645,7 +2645,6 @@ ge25519_clear_cofactor(ge25519_p3 *p3)
 static void
 ge25519_elligator2(fe25519 x, fe25519 y, const fe25519 r, int *notsquare_p)
 {
-    fe25519       e;
     fe25519       gx1;
     fe25519       rr2;
     fe25519       x2, x3, negx;
@@ -2739,7 +2738,7 @@ ge25519_from_hash(unsigned char s[32], const unsigned char h[64])
     fe25519_reduce64(fe_f, h);
     ge25519_elligator2(x, y, fe_f, &notsquare);
 
-    y_sign = notsquare;
+    y_sign = notsquare ^ 1;
     fe25519_neg(negy, y);
     fe25519_cmov(y, negy, fe25519_isnegative(y) ^ y_sign);
 
