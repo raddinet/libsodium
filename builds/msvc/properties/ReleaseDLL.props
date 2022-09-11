@@ -20,8 +20,8 @@
       <SwapRunFromNET>true</SwapRunFromNET>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <ProgramDatabaseFile />
-      <StripPrivateSymbols>/PDBSTRIPPED</StripPrivateSymbols>
-      <AdditionalOptions>/EMITPOGOPHASEINFO %(AdditionalOptions)</AdditionalOptions>
+      <StripPrivateSymbols>stripped.pdb</StripPrivateSymbols>
+      <AdditionalOptions>/EMITPOGOPHASEINFO /EMITTOOLVERSIONINFO:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 
