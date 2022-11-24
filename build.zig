@@ -54,7 +54,12 @@ pub fn build(b: *std.build.Builder) !void {
                 lib.defineCMacro("HAVE_PMMINTRIN_H", "1");
             },
             .aarch64, .aarch64_be => {
-                lib.defineCMacro("HAVE_ARMCRYTO", "1");
+                const cpu_features = target.getCpuFeatures();
+                const has_neon = cpu_features.isEnabled(@enumToInt(std.Target.aarch64.Feature.neon));
+                const has_crypto = cpu_features.isEnabled(@enumToInt(std.Target.aarch64.Feature.crypto));
+                if (has_neon and has_crypto) {
+                    lib.defineCMacro("HAVE_ARMCRYPTO", "1");
+                }
             },
             .wasm32, .wasm64 => {
                 lib.defineCMacro("__wasm__", "1");
@@ -87,5 +92,36 @@ pub fn build(b: *std.build.Builder) !void {
                 lib.addAssemblyFile(full_path);
             }
         }
+    }
+
+    const test_path = "test/default";
+    const out_bin_path = "zig-out/bin";
+    const test_dir = try fs.Dir.openIterableDir(fs.cwd(), test_path, .{ .no_follow = true });
+    fs.Dir.makePath(fs.cwd(), out_bin_path) catch {};
+    const out_bin_dir = try fs.Dir.openDir(fs.cwd(), out_bin_path, .{});
+    try test_dir.dir.copyFile("run.sh", out_bin_dir, "run.sh", .{});
+    var allocator = heap.page_allocator;
+    var walker = try test_dir.walk(allocator);
+    while (try walker.next()) |entry| {
+        const name = entry.basename;
+        if (mem.endsWith(u8, name, ".exp")) {
+            try test_dir.dir.copyFile(name, out_bin_dir, name, .{});
+            continue;
+        }
+        if (!mem.endsWith(u8, name, ".c")) {
+            continue;
+        }
+        const exe_name = name[0 .. name.len - 2];
+        var exe = b.addExecutable(exe_name, null);
+        exe.setTarget(target);
+        exe.setBuildMode(mode);
+        exe.linkLibC();
+        exe.linkLibrary(static);
+        exe.addIncludePath("src/libsodium/include");
+        exe.addIncludePath("test/quirks");
+        const full_path = try fmt.allocPrint(allocator, "{s}/{s}", .{ test_path, entry.path });
+        exe.addCSourceFiles(&.{full_path}, &.{});
+        exe.strip = true;
+        exe.install();
     }
 }

@@ -16,7 +16,7 @@ jobs:
           curl https://get.wasmer.io -sSfL | sh
         displayName: Install wasmer
       - script: |
-          curl -sL -o - https://ziglang.org/download/0.8.0/zig-linux-x86_64-0.8.0.tar.xz | tar xJ -f - -C /opt/
+          curl -sL -o - https://ziglang.org/download/0.10.0/zig-linux-x86_64-0.10.0.tar.xz | tar xJ -f - -C /opt/
           sudo mv /opt/zig-* /opt/zig
           env PATH=/opt/zig/bin:/opt/zig:$PATH
         displayName: Install the Zig SDK
@@ -61,20 +61,6 @@ jobs:
           Copy-Item "src\libsodium\include\sodium\*.h" -Destination "bin\include\sodium" -Recurse
           Copy-Item "src\libsodium\include\*.h" -Destination "bin\include\"
         displayName: Copy header files
-      - task: PublishBuildArtifacts@1
-        condition: not(canceled())
-        inputs:
-          pathToPublish: bin
-          artifactName: libsodium
-
-  - job: "windows_old"
-    pool:
-      vmImage: "vs2017-win2016"
-    steps:
-      - powershell: |
-          cd builds\msvc\build
-          & .\buildbase.bat ..\vs2017\libsodium.sln 15
-        displayName: Compile it all
       - task: PublishBuildArtifacts@1
         condition: not(canceled())
         inputs:
