@@ -260,7 +260,7 @@ fe25519_notsquare(const fe25519 x)
  r = p + q
  */
 
-void
+static void
 ge25519_add_cached(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q)
 {
     fe25519 t0;
@@ -471,6 +471,18 @@ ge25519_p1p1_to_p3(ge25519_p3 *r, const ge25519_p1p1 *p)
     fe25519_mul(r->T, p->X, p->Y);
 }
 
+/*
+ r = p
+ */
+void
+ge25519_p2_to_p3(ge25519_p3 *r, const ge25519_p2 *p)
+{
+    fe25519_copy(r->X, p->X);
+    fe25519_copy(r->Y, p->Y);
+    fe25519_copy(r->Z, p->Z);
+    fe25519_mul(r->T, p->X, p->Y);
+}
+
 static void
 ge25519_p2_0(ge25519_p2 *h)
 {
@@ -521,7 +533,7 @@ ge25519_cached_0(ge25519_cached *h)
  r = p
  */
 
-void
+static void
 ge25519_p3_to_cached(ge25519_cached *r, const ge25519_p3 *p)
 {
     fe25519_add(r->YplusX, p->Y, p->X);
@@ -697,7 +709,7 @@ ge25519_cmov8_cached(ge25519_cached *t, const ge25519_cached cached[8], const si
  r = p - q
  */
 
-void
+static void
 ge25519_sub_cached(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q)
 {
     fe25519 t0;
@@ -988,8 +1000,18 @@ ge25519_p3p3_dbl(ge25519_p3 *r, const ge25519_p3 *p)
     ge25519_p1p1_to_p3(r, &p1p1);
 }
 
-/* r = p+q */
+/* r = -p */
 static void
+ge25519_p3_neg(ge25519_p3 *r, const ge25519_p3 *p)
+{
+    fe25519_neg(r->X, p->X);
+    fe25519_copy(r->Y, p->Y);
+    fe25519_copy(r->Z, p->Z);
+    fe25519_neg(r->T, p->T);
+}
+
+/* r = p+q */
+void
 ge25519_p3_add(ge25519_p3 *r, const ge25519_p3 *p, const ge25519_p3 *q)
 {
     ge25519_cached q_cached;
@@ -998,6 +1020,16 @@ ge25519_p3_add(ge25519_p3 *r, const ge25519_p3 *p, const ge25519_p3 *q)
     ge25519_p3_to_cached(&q_cached, q);
     ge25519_add_cached(&p1p1, p, &q_cached);
     ge25519_p1p1_to_p3(r, &p1p1);
+}
+
+/* r = p-q */
+void
+ge25519_p3_sub(ge25519_p3 *r, const ge25519_p3 *p, const ge25519_p3 *q)
+{
+    ge25519_p3 q_neg;
+
+    ge25519_p3_neg(&q_neg, q);
+    ge25519_p3_add(r, p, &q_neg);
 }
 
 /* r = r*(2^n)+q */
@@ -1119,59 +1151,29 @@ ge25519_is_canonical(const unsigned char *s)
 }
 
 int
-ge25519_has_small_order(const unsigned char s[32])
+ge25519_has_small_order(const ge25519_p3 *p)
 {
-    CRYPTO_ALIGN(16)
-    static const unsigned char blocklist[][32] = {
-        /* 0 (order 4) */
-        { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-        /* 1 (order 1) */
-        { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-        /* 2707385501144840649318225287225658788936804267575313519463743609750303402022
-           (order 8) */
-        { 0x26, 0xe8, 0x95, 0x8f, 0xc2, 0xb2, 0x27, 0xb0, 0x45, 0xc3, 0xf4,
-          0x89, 0xf2, 0xef, 0x98, 0xf0, 0xd5, 0xdf, 0xac, 0x05, 0xd3, 0xc6,
-          0x33, 0x39, 0xb1, 0x38, 0x02, 0x88, 0x6d, 0x53, 0xfc, 0x05 },
-        /* 55188659117513257062467267217118295137698188065244968500265048394206261417927
-           (order 8) */
-        { 0xc7, 0x17, 0x6a, 0x70, 0x3d, 0x4d, 0xd8, 0x4f, 0xba, 0x3c, 0x0b,
-          0x76, 0x0d, 0x10, 0x67, 0x0f, 0x2a, 0x20, 0x53, 0xfa, 0x2c, 0x39,
-          0xcc, 0xc6, 0x4e, 0xc7, 0xfd, 0x77, 0x92, 0xac, 0x03, 0x7a },
-        /* p-1 (order 2) */
-        { 0xec, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f },
-        /* p (=0, order 4) */
-        { 0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f },
-        /* p+1 (=1, order 1) */
-        { 0xee, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f }
-    };
-    unsigned char c[7] = { 0 };
-    unsigned int  k;
-    size_t        i, j;
+    fe25519 recip;
+    fe25519 x;
+    fe25519 x_neg;
+    fe25519 y;
+    fe25519 y_sqrtm1;
+    fe25519 c;
+    int     ret = 0;
 
-    COMPILER_ASSERT(7 == sizeof blocklist / sizeof blocklist[0]);
-    for (j = 0; j < 31; j++) {
-        for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
-            c[i] |= s[j] ^ blocklist[i][j];
-        }
-    }
-    for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
-        c[i] |= (s[j] & 0x7f) ^ blocklist[i][j];
-    }
-    k = 0;
-    for (i = 0; i < sizeof blocklist / sizeof blocklist[0]; i++) {
-        k |= (c[i] - 1);
-    }
-    return (int) ((k >> 8) & 1);
+    fe25519_invert(recip, p->Z);
+    fe25519_mul(x, p->X, recip);
+    ret |= fe25519_iszero(x);
+    fe25519_mul(y, p->Y, recip);
+    ret |= fe25519_iszero(y);
+    fe25519_neg(x_neg, p->X);
+    fe25519_mul(y_sqrtm1, y, fe25519_sqrtm1);
+    fe25519_sub(c, y_sqrtm1, x);
+    ret |= fe25519_iszero(c);
+    fe25519_sub(c, y_sqrtm1, x_neg);
+    ret |= fe25519_iszero(c);
+
+    return ret;
 }
 
 /*
@@ -2621,7 +2623,7 @@ ge25519_xmont_to_ymont(fe25519 y, const fe25519 x)
 }
 
 /* multiply by the cofactor */
-static void
+void
 ge25519_clear_cofactor(ge25519_p3 *p3)
 {
     ge25519_p1p1 p1;
@@ -2963,8 +2965,6 @@ void
 ristretto255_from_hash(unsigned char s[32], const unsigned char h[64])
 {
     fe25519        r0, r1;
-    ge25519_cached p1_cached;
-    ge25519_p1p1   p_p1p1;
     ge25519_p3     p0, p1;
     ge25519_p3     p;
 
@@ -2972,8 +2972,6 @@ ristretto255_from_hash(unsigned char s[32], const unsigned char h[64])
     fe25519_frombytes(r1, h + 32);
     ristretto255_elligator(&p0, r0);
     ristretto255_elligator(&p1, r1);
-    ge25519_p3_to_cached(&p1_cached, &p1);
-    ge25519_add_cached(&p_p1p1, &p0, &p1_cached);
-    ge25519_p1p1_to_p3(&p, &p_p1p1);
+    ge25519_p3_add(&p, &p0, &p1);
     ristretto255_p3_tobytes(s, &p);
 }
