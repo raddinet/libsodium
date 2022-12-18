@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const fmt = std.fmt;
 const fs = std.fs;
 const heap = std.heap;
@@ -11,15 +10,19 @@ pub fn build(b: *std.build.Builder) !void {
     const src_path = "src/libsodium";
     const src_dir = try fs.Dir.openIterableDir(fs.cwd(), src_path, .{ .no_follow = true });
 
-    var target = b.standardTargetOptions(.{});
-    var mode = b.standardReleaseOptions();
+    const target = b.standardTargetOptions(.{});
+    const mode = b.standardReleaseOptions();
+
+    const enable_benchmarks = b.option(bool, "enable_benchmarks", "Whether tests should be benchmarks.") orelse false;
+    const benchmarks_iterations = b.option(u32, "iterations", "Number of iterations for benchmarks.") orelse 200;
 
     const static = b.addStaticLibrary("sodium", null);
     const shared = b.addSharedLibrary("sodium", null, .unversioned);
-    shared.strip = true;
     static.strip = true;
+    shared.strip = true;
 
-    const libs = [_]*LibExeObjStep{ static, shared };
+    const libs_ = [_]*LibExeObjStep{ static, shared };
+    const libs = if (target.getOsTag() == .wasi) libs_[0..1] else libs_[0..];
 
     const prebuilt_version_file_path = "builds/msvc/version.h";
     const version_file_path = "include/sodium/version.h";
@@ -216,6 +219,13 @@ pub fn build(b: *std.build.Builder) !void {
         const full_path = try fmt.allocPrint(allocator, "{s}/{s}", .{ test_path, entry.path });
         exe.addCSourceFiles(&.{full_path}, &.{});
         exe.strip = true;
+
+        if (enable_benchmarks) {
+            exe.defineCMacro("BENCHMARKS", "1");
+            var buf: [16]u8 = undefined;
+            exe.defineCMacro("ITERATIONS", std.fmt.bufPrintIntToSlice(&buf, benchmarks_iterations, 10, .lower, .{}));
+        }
+
         exe.install();
     }
 }

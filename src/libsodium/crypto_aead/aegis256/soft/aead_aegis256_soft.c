@@ -12,27 +12,17 @@
 #include "utils.h"
 
 #include "private/common.h"
+#include "private/softaes.h"
 
-#include "aead_aegis256_aesni.h"
+#include "aead_aegis256_soft.h"
 
-#if defined(HAVE_TMMINTRIN_H) && defined(HAVE_WMMINTRIN_H)
-
-#ifdef __GNUC__
-#pragma GCC target("ssse3")
-#pragma GCC target("aes")
-#endif
-
-#include "private/sse2_64_32.h"
-#include <tmmintrin.h>
-#include <wmmintrin.h>
-
-typedef __m128i aes_block_t;
-#define AES_BLOCK_XOR(A, B)       _mm_xor_si128((A), (B))
-#define AES_BLOCK_AND(A, B)       _mm_and_si128((A), (B))
-#define AES_BLOCK_LOAD(A)         _mm_loadu_si128((const aes_block_t *) (const void *) (A))
-#define AES_BLOCK_LOAD_64x2(A, B) _mm_set_epi64x((A), (B))
-#define AES_BLOCK_STORE(A, B)     _mm_storeu_si128((aes_block_t *) (void *) (A), (B))
-#define AES_ENC(A, B)             _mm_aesenc_si128((A), (B))
+typedef SoftAesBlock aes_block_t;
+#define AES_BLOCK_XOR(A, B)       softaes_block_xor((A), (B))
+#define AES_BLOCK_AND(A, B)       softaes_block_and((A), (B))
+#define AES_BLOCK_LOAD(A)         softaes_block_load(A)
+#define AES_BLOCK_LOAD_64x2(A, B) softaes_block_load64x2((A), (B))
+#define AES_BLOCK_STORE(A, B)     softaes_block_store((A), (B))
+#define AES_ENC(A, B)             softaes_block_encrypt((A), (B))
 
 static inline void
 aegis256_update(aes_block_t *const state, const aes_block_t data)
@@ -52,16 +42,16 @@ static void
 aegis256_init(const unsigned char *key, const unsigned char *nonce, aes_block_t *const state)
 {
     static CRYPTO_ALIGN(16)
-        const uint8_t c0_[] = { 0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
-                                0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd };
+        const unsigned char c0_[] = { 0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
+                                      0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd };
     static CRYPTO_ALIGN(16)
-        const uint8_t c1_[] = { 0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
-                                0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62 };
-    const aes_block_t c0    = AES_BLOCK_LOAD(c0_);
-    const aes_block_t c1    = AES_BLOCK_LOAD(c1_);
-    aes_block_t       k1, k2;
-    aes_block_t       kxn1, kxn2;
-    int               i;
+        const unsigned char c1_[] = { 0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
+                                      0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62 };
+    const aes_block_t       c0    = AES_BLOCK_LOAD(c0_);
+    const aes_block_t       c1    = AES_BLOCK_LOAD(c1_);
+    aes_block_t             k1, k2;
+    aes_block_t             kxn1, kxn2;
+    int                     i;
 
     k1   = AES_BLOCK_LOAD(&key[0]);
     k2   = AES_BLOCK_LOAD(&key[16]);
@@ -98,8 +88,10 @@ aegis256_mac(unsigned char *mac, unsigned long long adlen, unsigned long long ml
     }
 
     tmp = AES_BLOCK_XOR(state[5], state[4]);
-    tmp = AES_BLOCK_XOR(tmp, AES_BLOCK_XOR(state[3], state[2]));
-    tmp = AES_BLOCK_XOR(tmp, AES_BLOCK_XOR(state[1], state[0]));
+    tmp = AES_BLOCK_XOR(tmp, state[3]);
+    tmp = AES_BLOCK_XOR(tmp, state[2]);
+    tmp = AES_BLOCK_XOR(tmp, state[1]);
+    tmp = AES_BLOCK_XOR(tmp, state[0]);
 
     AES_BLOCK_STORE(mac, tmp);
 }
@@ -249,9 +241,7 @@ aegis256_decrypt_detached(unsigned char *m, unsigned char *nsec, const unsigned 
     return 0;
 }
 
-struct crypto_aead_aegis256_implementation crypto_aead_aegis256_aesni_implementation = {
+struct crypto_aead_aegis256_implementation crypto_aead_aegis256_soft_implementation = {
     SODIUM_C99(.encrypt_detached =) aegis256_encrypt_detached,
     SODIUM_C99(.decrypt_detached =) aegis256_decrypt_detached
 };
-
-#endif
