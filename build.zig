@@ -11,17 +11,21 @@ pub fn build(b: *std.build.Builder) !void {
     const src_dir = try fs.Dir.openIterableDir(fs.cwd(), src_path, .{ .no_follow = true });
 
     const target = b.standardTargetOptions(.{});
-    const mode = b.standardReleaseOptions();
+    const optimize = b.standardOptimizeOption(.{});
 
     const enable_benchmarks = b.option(bool, "enable_benchmarks", "Whether tests should be benchmarks.") orelse false;
     const benchmarks_iterations = b.option(u32, "iterations", "Number of iterations for benchmarks.") orelse 200;
 
-    const shared = b.addSharedLibrary(
-        if (target.isWindows()) "sodium_shared" else "sodium",
-        null,
-        .unversioned,
-    );
-    const static = b.addStaticLibrary("sodium", null);
+    const shared = b.addSharedLibrary(.{
+        .name = if (target.isWindows()) "sodium_shared" else "sodium",
+        .target = target,
+        .optimize = optimize,
+    });
+    const static = b.addStaticLibrary(.{
+        .name = "sodium",
+        .target = target,
+        .optimize = optimize,
+    });
     shared.strip = true;
     static.strip = true;
 
@@ -36,10 +40,8 @@ pub fn build(b: *std.build.Builder) !void {
     }
 
     for (libs) |lib| {
-        lib.setTarget(target);
-        lib.setBuildMode(mode);
         lib.install();
-        if (mode != .Debug) {
+        if (optimize != .Debug) {
             lib.strip = true;
         }
         lib.linkLibC();
@@ -70,6 +72,7 @@ pub fn build(b: *std.build.Builder) !void {
 
                 lib.defineCMacro("HAVE_CATCHABLE_ABRT", "1");
                 lib.defineCMacro("HAVE_CATCHABLE_SEGV", "1");
+                lib.defineCMacro("HAVE_CLOCK_GETTIME", "1");
                 lib.defineCMacro("HAVE_GETPID", "1");
                 lib.defineCMacro("HAVE_INLINE_ASM", "1");
                 lib.defineCMacro("HAVE_MADVISE", "1");
@@ -100,6 +103,7 @@ pub fn build(b: *std.build.Builder) !void {
                 lib.defineCMacro("HAVE_ARC4RANDOM_BUF", "1");
                 lib.defineCMacro("HAVE_CATCHABLE_ABRT", "1");
                 lib.defineCMacro("HAVE_CATCHABLE_SEGV", "1");
+                lib.defineCMacro("HAVE_CLOCK_GETTIME", "1");
                 lib.defineCMacro("HAVE_GETENTROPY", "1");
                 lib.defineCMacro("HAVE_GETPID", "1");
                 lib.defineCMacro("HAVE_MADVISE", "1");
@@ -121,6 +125,7 @@ pub fn build(b: *std.build.Builder) !void {
             .wasi => {
                 lib.defineCMacro("HAVE_ARC4RANDOM", "1");
                 lib.defineCMacro("HAVE_ARC4RANDOM_BUF", "1");
+                lib.defineCMacro("HAVE_CLOCK_GETTIME", "1");
                 lib.defineCMacro("HAVE_GETENTROPY", "1");
                 lib.defineCMacro("HAVE_NANOSLEEP", "1");
                 lib.defineCMacro("HAVE_POSIX_MEMALIGN", "1");
@@ -211,18 +216,18 @@ pub fn build(b: *std.build.Builder) !void {
             continue;
         }
         const exe_name = name[0 .. name.len - 2];
-        var exe = b.addExecutable(exe_name, null);
-        exe.setTarget(target);
-        exe.setBuildMode(mode);
+        var exe = b.addExecutable(.{
+            .name = exe_name,
+            .target = target,
+            .optimize = optimize,
+        });
         exe.linkLibC();
-        exe.want_lto = false;
         exe.strip = true;
         exe.linkLibrary(static);
         exe.addIncludePath("src/libsodium/include");
         exe.addIncludePath("test/quirks");
         const full_path = try fmt.allocPrint(allocator, "{s}/{s}", .{ test_path, entry.path });
         exe.addCSourceFiles(&.{full_path}, &.{});
-        exe.strip = true;
 
         if (enable_benchmarks) {
             exe.defineCMacro("BENCHMARKS", "1");
