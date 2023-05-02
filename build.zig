@@ -32,7 +32,7 @@ pub fn build(b: *std.build.Builder) !void {
     }
 
     for (libs) |lib| {
-        lib.install();
+        b.installArtifact(lib);
         if (optimize != .Debug) {
             lib.strip = true;
         }
@@ -86,6 +86,9 @@ pub fn build(b: *std.build.Builder) !void {
             .windows => {
                 lib.defineCMacro("HAVE_RAISE", "1");
                 lib.defineCMacro("HAVE_SYS_PARAM_H", "1");
+                if (lib == static) {
+                    lib.defineCMacro("SODIUM_STATIC", "1");
+                }
             },
             .macos => {
                 lib.defineCMacro("ASM_HIDE_SYMBOL", ".private_extern");
@@ -227,6 +230,6 @@ pub fn build(b: *std.build.Builder) !void {
             exe.defineCMacro("ITERATIONS", std.fmt.bufPrintIntToSlice(&buf, benchmarks_iterations, 10, .lower, .{}));
         }
 
-        exe.install();
+        b.installArtifact(exe);
     }
 }
