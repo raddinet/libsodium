@@ -14,6 +14,7 @@
       <TargetMachine>MachineARM64</TargetMachine>
       <SwapRunFromCD>true</SwapRunFromCD>
       <SwapRunFromNET>true</SwapRunFromNET>
+      <AdditionalOptions>/FILEALIGN:4096 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Lib>
       <AdditionalOptions>/MACHINE:ARM64 %(AdditionalOptions)</AdditionalOptions>
