@@ -44,6 +44,7 @@ pub fn build(b: *std.build.Builder) !void {
         lib.defineCMacro("DEV_MODE", "1");
         lib.defineCMacro("HAVE_ATOMIC_OPS", "1");
         lib.defineCMacro("HAVE_C11_MEMORY_FENCES", "1");
+        lib.defineCMacro("HAVE_CET_H", "1");
         lib.defineCMacro("HAVE_GCC_MEMORY_FENCES", "1");
         lib.defineCMacro("HAVE_INLINE_ASM", "1");
         lib.defineCMacro("HAVE_INTTYPES_H", "1");
@@ -145,8 +146,8 @@ pub fn build(b: *std.build.Builder) !void {
             },
             .aarch64, .aarch64_be => {
                 const cpu_features = target.getCpuFeatures();
-                const has_neon = cpu_features.isEnabled(@enumToInt(Target.aarch64.Feature.neon));
-                const has_crypto = cpu_features.isEnabled(@enumToInt(Target.aarch64.Feature.crypto));
+                const has_neon = cpu_features.isEnabled(@intFromEnum(Target.aarch64.Feature.neon));
+                const has_crypto = cpu_features.isEnabled(@intFromEnum(Target.aarch64.Feature.crypto));
                 if (has_neon and has_crypto) {
                     lib.defineCMacro("HAVE_ARMCRYPTO", "1");
                 }
@@ -166,9 +167,9 @@ pub fn build(b: *std.build.Builder) !void {
 
         switch (target.getCpuArch()) {
             .x86_64 => {
-                lib.target.cpu_features_add.addFeature(@enumToInt(Target.x86.Feature.sse4_1));
-                lib.target.cpu_features_add.addFeature(@enumToInt(Target.x86.Feature.aes));
-                lib.target.cpu_features_add.addFeature(@enumToInt(Target.x86.Feature.pclmul));
+                lib.target.cpu_features_add.addFeature(@intFromEnum(Target.x86.Feature.sse4_1));
+                lib.target.cpu_features_add.addFeature(@intFromEnum(Target.x86.Feature.aes));
+                lib.target.cpu_features_add.addFeature(@intFromEnum(Target.x86.Feature.pclmul));
             },
             else => {},
         }

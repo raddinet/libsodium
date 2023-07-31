@@ -28,12 +28,6 @@ if [ -z "$WASI_RUNTIME" ] || [ "$WASI_RUNTIME" = "wasmtime" ]; then
   fi
 fi
 
-if [ -z "$WASI_RUNTIME" ] || [ "$WASI_RUNTIME" = "wavm" ]; then
-  if command -v wavm >/dev/null; then
-    wavm run --abi=wasi "$1" && exit 0
-  fi
-fi
-
 if [ -z "$WASI_RUNTIME" ] || [ "$WASI_RUNTIME" = "bun" ]; then
   if echo | bun help >/dev/null 2>&1; then
     {
@@ -64,7 +58,7 @@ if [ -z "$WASI_RUNTIME" ] || [ "$WASI_RUNTIME" = "node" ]; then
       echo "  wasi.start(instance);"
       echo "})().catch(e => { console.error(e); process.exit(1); });"
     } >"${1}.mjs"
-    node --experimental-wasm-bigint --experimental-wasi-unstable-preview1 "${1}.mjs" 2>/tmp/err &&
+    node --experimental-wasi-unstable-preview1 "${1}.mjs" 2>/tmp/err &&
       rm -f "${1}.mjs" && exit 0
   fi
 fi
