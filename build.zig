@@ -22,7 +22,13 @@ pub fn build(b: *std.build.Builder) !void {
         .optimize = optimize,
     });
 
-    const libs = [_]*LibExeObjStep{static};
+    const shared = b.addSharedLibrary(.{
+        .name = if (target.isWindows()) "sodium_shared" else "sodium",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const libs = [_]*LibExeObjStep{ static, shared };
 
     const prebuilt_version_file_path = "builds/msvc/version.h";
     const version_file_path = "include/sodium/version.h";
@@ -32,13 +38,19 @@ pub fn build(b: *std.build.Builder) !void {
     }
 
     for (libs) |lib| {
-        b.installArtifact(lib);
-        if (optimize != .Debug) {
+        if (lib == shared and
+            !(target.isDarwin() or target.isDragonFlyBSD() or target.isFreeBSD() or
+            target.isLinux() or target.isNetBSD() or target.isOpenBSD() or target.isWindows()))
+        {
+            continue;
+        }
+        if (optimize != .Debug and !target.isWindows() and lib != static) {
             lib.strip = true;
         }
+        b.installArtifact(lib);
         lib.linkLibC();
 
-        lib.addIncludePath("src/libsodium/include/sodium");
+        lib.addIncludePath(.{ .path = "src/libsodium/include/sodium" });
         lib.defineCMacro("_GNU_SOURCE", "1");
         lib.defineCMacro("CONFIGURED", "1");
         lib.defineCMacro("DEV_MODE", "1");
@@ -189,7 +201,7 @@ pub fn build(b: *std.build.Builder) !void {
                 });
             } else if (mem.endsWith(u8, name, ".S")) {
                 const full_path = try fmt.allocPrint(allocator, "{s}/{s}", .{ src_path, entry.path });
-                lib.addAssemblyFile(full_path);
+                lib.addAssemblyFile(.{ .path = full_path });
             }
         }
     }
@@ -220,8 +232,8 @@ pub fn build(b: *std.build.Builder) !void {
         exe.linkLibC();
         exe.strip = true;
         exe.linkLibrary(static);
-        exe.addIncludePath("src/libsodium/include");
-        exe.addIncludePath("test/quirks");
+        exe.addIncludePath(.{ .path = "src/libsodium/include" });
+        exe.addIncludePath(.{ .path = "test/quirks" });
         const full_path = try fmt.allocPrint(allocator, "{s}/{s}", .{ test_path, entry.path });
         exe.addCSourceFiles(&.{full_path}, &.{});
 
