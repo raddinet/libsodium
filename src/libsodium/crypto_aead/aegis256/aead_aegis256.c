@@ -21,8 +21,6 @@
 
 static const aegis256_implementation *implementation = &aegis256_soft_implementation;
 
-#include "private/common.h"
-
 size_t
 crypto_aead_aegis256_keybytes(void)
 {
