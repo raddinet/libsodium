@@ -3,16 +3,18 @@ lib_LTLIBRARIES = \
 
 libsodium_la_SOURCES = \
 	crypto_aead/aegis128l/aead_aegis128l.c \
-	crypto_aead/aegis128l/aead_aegis128l.h \
-	crypto_aead/aegis128l/soft/aead_aegis128l_soft.c \
-	crypto_aead/aegis128l/soft/aead_aegis128l_soft.h \
+	crypto_aead/aegis128l/aegis128l_common.h \
+	crypto_aead/aegis128l/aegis128l_soft.c \
+	crypto_aead/aegis128l/aegis128l_soft.h \
+	crypto_aead/aegis128l/implementations.h \
 	crypto_aead/aegis256/aead_aegis256.c \
-	crypto_aead/aegis256/aead_aegis256.h \
-	crypto_aead/aegis256/soft/aead_aegis256_soft.c \
-	crypto_aead/aegis256/soft/aead_aegis256_soft.h \
+	crypto_aead/aegis256/aegis256_common.h \
+	crypto_aead/aegis256/aegis256_soft.c \
+	crypto_aead/aegis256/aegis256_soft.h \
+	crypto_aead/aegis256/implementations.h \
 	crypto_aead/aes256gcm/aead_aes256gcm.c \
-	crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c \
-	crypto_aead/xchacha20poly1305/sodium/aead_xchacha20poly1305.c \
+	crypto_aead/chacha20poly1305/aead_chacha20poly1305.c \
+	crypto_aead/xchacha20poly1305/aead_xchacha20poly1305.c \
 	crypto_auth/crypto_auth.c \
 	crypto_auth/hmacsha256/auth_hmacsha256.c \
 	crypto_auth/hmacsha512/auth_hmacsha512.c \
@@ -45,6 +47,8 @@ libsodium_la_SOURCES = \
 	crypto_hash/sha512/cp/hash_sha512_cp.c \
 	crypto_kdf/blake2b/kdf_blake2b.c \
 	crypto_kdf/crypto_kdf.c \
+	crypto_kdf/hkdf/kdf_hkdf_sha256.c \
+	crypto_kdf/hkdf/kdf_hkdf_sha512.c \
 	crypto_kx/crypto_kx.c \
 	crypto_onetimeauth/crypto_onetimeauth.c \
 	crypto_onetimeauth/poly1305/onetimeauth_poly1305.c \
@@ -93,7 +97,7 @@ libsodium_la_SOURCES = \
 	crypto_stream/salsa20/stream_salsa20.c \
 	crypto_stream/salsa20/stream_salsa20.h \
 	crypto_stream/xsalsa20/stream_xsalsa20.c \
-	crypto_verify/sodium/verify.c \
+	crypto_verify/verify.c \
 	include/sodium/private/asm_cet.h \
 	include/sodium/private/chacha20_ietf_ext.h \
 	include/sodium/private/common.h \
@@ -166,8 +170,6 @@ libsodium_la_SOURCES += \
 	crypto_box/curve25519xchacha20poly1305/box_seal_curve25519xchacha20poly1305.c \
 	crypto_core/ed25519/core_ed25519.c \
 	crypto_core/ed25519/core_ristretto255.c \
-	crypto_kdf/hkdf/kdf_hkdf_sha256.c \
-	crypto_kdf/hkdf/kdf_hkdf_sha512.c \
 	crypto_pwhash/scryptsalsa208sha256/crypto_scrypt-common.c \
 	crypto_pwhash/scryptsalsa208sha256/crypto_scrypt.h \
 	crypto_pwhash/scryptsalsa208sha256/scrypt_platform.c \
@@ -232,20 +234,20 @@ libarmcrypto_la_LDFLAGS = $(libsodium_la_LDFLAGS)
 libarmcrypto_la_CPPFLAGS = $(libsodium_la_CPPFLAGS) \
 	@CFLAGS_ARMCRYPTO@
 libarmcrypto_la_SOURCES = \
-	crypto_aead/aegis128l/armcrypto/aead_aegis128l_armcrypto.c \
-	crypto_aead/aegis128l/armcrypto/aead_aegis128l_armcrypto.h \
-	crypto_aead/aegis256/armcrypto/aead_aegis256_armcrypto.c \
-	crypto_aead/aegis256/armcrypto/aead_aegis256_armcrypto.h \
+	crypto_aead/aegis128l/aegis128l_armcrypto.c \
+	crypto_aead/aegis128l/aegis128l_armcrypto.h \
+	crypto_aead/aegis256/aegis256_armcrypto.c \
+	crypto_aead/aegis256/aegis256_armcrypto.h \
 	crypto_aead/aes256gcm/armcrypto/aead_aes256gcm_armcrypto.c
 
 libaesni_la_LDFLAGS = $(libsodium_la_LDFLAGS)
 libaesni_la_CPPFLAGS = $(libsodium_la_CPPFLAGS) \
 	@CFLAGS_SSE2@ @CFLAGS_SSSE3@ @CFLAGS_AVX@ @CFLAGS_AESNI@ @CFLAGS_PCLMUL@
 libaesni_la_SOURCES = \
-	crypto_aead/aegis128l/aesni/aead_aegis128l_aesni.c \
-	crypto_aead/aegis128l/aesni/aead_aegis128l_aesni.h \
-	crypto_aead/aegis256/aesni/aead_aegis256_aesni.c \
-	crypto_aead/aegis256/aesni/aead_aegis256_aesni.h \
+	crypto_aead/aegis128l/aegis128l_aesni.c \
+	crypto_aead/aegis128l/aegis128l_aesni.h \
+	crypto_aead/aegis256/aegis256_aesni.c \
+	crypto_aead/aegis256/aegis256_aesni.h \
 	crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
 
 libsse2_la_LDFLAGS = $(libsodium_la_LDFLAGS)

@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([libsodium],[1.0.18],[https://github.com/jedisct1/libsodium/issues],[libsodium],[https://libsodium.org])
+AC_INIT([libsodium],[1.0.20],[https://github.com/jedisct1/libsodium/issues],[libsodium],[https://libsodium.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libsodium/sodium/version.c])
@@ -12,10 +12,10 @@ AM_DEP_TRACK
 
 AC_SUBST(VERSION)
 
-SODIUM_LIBRARY_VERSION_MAJOR=11
+SODIUM_LIBRARY_VERSION_MAJOR=28
 SODIUM_LIBRARY_VERSION_MINOR=0
-DLL_VERSION=27
-SODIUM_LIBRARY_VERSION=27:0:0
+DLL_VERSION=28
+SODIUM_LIBRARY_VERSION=28:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -397,7 +397,30 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
   AS_IF([test "x$target_cpu_aarch64" = "xyes"], [
     have_armcrypto=no
     AC_MSG_CHECKING(for ARM crypto instructions set)
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+      #ifdef __clang__
+      #  pragma clang attribute push(__attribute__((target("neon,crypto,aes"))), apply_to = function)
+      #elif defined(__GNUC__)
+      #  pragma GCC target("+simd+crypto")
+      #endif
+      #ifndef __ARM_FEATURE_CRYPTO
+      #  define __ARM_FEATURE_CRYPTO 1
+      #endif
+      #ifndef __ARM_FEATURE_AES
+      #  define __ARM_FEATURE_AES 1
+      #endif
+
+      #include <arm_neon.h>
+    ]], [[
+      int64x2_t x = { 0, 0 };
+      vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(0));
+      vmull_high_p64(vreinterpretq_p64_s64(x), vreinterpretq_p64_s64(x));
+
+      #ifdef __clang__
+      #  pragma clang attribute pop
+      #endif
+      (void) 0
+      ]])],
       [
         AC_MSG_RESULT(yes)
         have_armcrypto=yes
@@ -408,7 +431,30 @@ AS_IF([test "x$EMSCRIPTEN" = "x"], [
         AX_CHECK_COMPILE_FLAG([-march=armv8-a+crypto+aes], [
           CFLAGS="$CFLAGS -march=armv8-a+crypto+aes"
           AC_MSG_CHECKING(for ARM crypto instructions set with -march=armv8-a+crypto+aes)
-          AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <arm_neon.h>]], [[ vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(__ARM_FEATURE_CRYPTO)) ]])],
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+            #ifdef __clang__
+            #  pragma clang attribute push(__attribute__((target("neon,crypto,aes"))), apply_to = function)
+            #elif defined(__GNUC__)
+            #  pragma GCC target("+simd+crypto")
+            #endif
+            #ifndef __ARM_FEATURE_CRYPTO
+            #  define __ARM_FEATURE_CRYPTO 1
+            #endif
+            #ifndef __ARM_FEATURE_AES
+            #  define __ARM_FEATURE_AES 1
+            #endif
+
+            #include <arm_neon.h>
+          ]], [[
+            int64x2_t x = { 0, 0 };
+            vaeseq_u8(vmovq_n_u8(0), vmovq_n_u8(0));
+            vmull_high_p64(vreinterpretq_p64_s64(x), vreinterpretq_p64_s64(x));
+
+            #ifdef __clang__
+            #  pragma clang attribute pop
+            #endif
+            (void) 0
+          ]])],
             [
               AC_MSG_RESULT(yes - with addition of -march=armv8-a+crypto+aes)
               have_armcrypto=yes
@@ -666,7 +712,7 @@ AS_IF([test "$enable_asm" != "no"],[
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   ]], [[
 #if defined(__amd64) || defined(__amd64__) || defined(__x86_64__)
-# if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_WIN32) || defined(_WIN64)
+# if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_WIN32) || defined(_WIN64) || defined(__midipix__)
 #  error Windows x86_64 calling conventions are not supported yet
 # endif
 /* neat */
@@ -904,7 +950,7 @@ if (&getentropy != NULL) {
 
 AS_IF([test "x$WASI" = "x"],[
   AC_CHECK_FUNCS([getpid])
-  AC_CHECK_FUNCS([getauxva elf_aux_info])
+  AC_CHECK_FUNCS([getauxval elf_aux_info])
 ])
 
 AC_CHECK_FUNCS([posix_memalign nanosleep clock_gettime])
@@ -947,7 +993,6 @@ AC_CONFIG_FILES([Makefile
                  dist-build/Makefile
                  libsodium.pc
                  libsodium-uninstalled.pc
-                 msvc-scripts/Makefile
                  src/Makefile
                  src/libsodium/Makefile
                  src/libsodium/include/Makefile

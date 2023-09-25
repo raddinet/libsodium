@@ -19,6 +19,19 @@
 #define __vectorcall
 #endif
 
+#ifdef __clang__
+#pragma clang attribute push(__attribute__((target("neon,crypto,aes"))), apply_to = function)
+#elif defined(__GNUC__)
+#pragma GCC target("+simd+crypto")
+#endif
+
+#ifndef __ARM_FEATURE_CRYPTO
+#define __ARM_FEATURE_CRYPTO 1
+#endif
+#ifndef __ARM_FEATURE_AES
+#define __ARM_FEATURE_AES 1
+#endif
+
 #include <arm_neon.h>
 
 #define ABYTES    crypto_aead_aes256gcm_ABYTES
@@ -30,8 +43,8 @@
 
 typedef uint64x2_t BlockVec;
 
-#define LOAD128(a)     vld1q_u64((const void *) a)
-#define STORE128(a, b) vst1q_u64(((void *) a), (b))
+#define LOAD128(a)     vld1q_u64((const uint64_t *) (const void *) (a))
+#define STORE128(a, b) vst1q_u64((uint64_t *) (void *) (a), (b))
 #define AES_XENCRYPT(block_vec, rkey) \
     vreinterpretq_u64_u8(            \
         vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_u64(block_vec), rkey)))
@@ -1012,5 +1025,9 @@ crypto_aead_aes256gcm_is_available(void)
 {
     return sodium_runtime_has_armcrypto();
 }
+
+#ifdef __clang__
+#pragma clang attribute pop
+#endif
 
 #endif

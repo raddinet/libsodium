@@ -60,15 +60,15 @@ _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
     cpu_features->has_neon = 0;
     cpu_features->has_armcrypto = 0;
 
-#if !(defined(__ARM_ARCH) || defined(_M_ARM64))
+#ifndef __ARM_ARCH
     return -1; /* LCOV_EXCL_LINE */
 #endif
 
 #if defined(__ARM_NEON) || defined(__aarch64__) || defined(_M_ARM64)
     cpu_features->has_neon = 1;
-#elif defined(HAVE_ANDROID_GETCPUFEATURES) && defined(ANDROID_CPU_ARM_FEATURE_NEON)
+#elif defined(HAVE_ANDROID_GETCPUFEATURES)
     cpu_features->has_neon =
-        (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0x0;
+        (android_getCpuFeatures() & ANDROID_CPU_ARM64_FEATURE_ASIMD) != 0x0;
 #elif (defined(__aarch64__) || defined(_M_ARM64)) && defined(AT_HWCAP)
 # ifdef HAVE_GETAUXVAL
     cpu_features->has_neon = (getauxval(AT_HWCAP) & (1L << 1)) != 0;
@@ -97,7 +97,7 @@ _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
         return 0;
     }
 
-#if __ARM_FEATURE_CRYPTO || defined(_M_ARM64)
+#if defined(__ARM_FEATURE_CRYPTO) && defined(__ARM_FEATURE_AES)
     cpu_features->has_armcrypto = 1;
 #elif defined(_M_ARM64)
     cpu_features->has_armcrypto = 1; /* assuming all CPUs supported by ARM Windows have the crypto extensions */
@@ -117,9 +117,9 @@ _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
             cpu_features->has_armcrypto = 1;
         }
     }
-#elif defined(HAVE_ANDROID_GETCPUFEATURES) && defined(ANDROID_CPU_ARM_FEATURE_AES)
+#elif defined(HAVE_ANDROID_GETCPUFEATURES)
     cpu_features->has_armcrypto =
-        (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_AES) != 0x0;
+        (android_getCpuFeatures() & ANDROID_CPU_ARM64_FEATURE_AES) != 0x0;
 #elif (defined(__aarch64__) || defined(_M_ARM64)) && defined(AT_HWCAP)
 # ifdef HAVE_GETAUXVAL
     cpu_features->has_armcrypto = (getauxval(AT_HWCAP) & (1L << 3)) != 0;

@@ -32,6 +32,8 @@
 #   define HAVE_LINUX_COMPATIBLE_GETRANDOM
 #  endif
 # endif
+#elif defined(__midipix__)
+# define HAVE_LINUX_COMPATIBLE_GETRANDOM
 #elif defined(__FreeBSD__)
 # include <sys/param.h>
 # if defined(__FreeBSD_version) && __FreeBSD_version >= 1200000
@@ -96,6 +98,10 @@ BOOLEAN NTAPI RtlGenRandom(PVOID RandomBuffer, ULONG RandomBufferLength);
 # endif
 #endif
 
+#if !defined(TLS) && !defined(__STDC_NO_THREADS__) && \
+    defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+# define TLS _Thread_local
+#endif
 #ifndef TLS
 # ifdef _WIN32
 #  define TLS __declspec(thread)
@@ -183,7 +189,7 @@ static int
 randombytes_getentropy(void * const buf, const size_t size)
 {
     if (CCRandomGenerateBytes(buf, size) != kCCSuccess) {
-	return -1;
+        return -1;
     }
     return 0;
 }
