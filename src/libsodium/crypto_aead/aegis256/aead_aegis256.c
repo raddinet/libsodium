@@ -21,6 +21,12 @@
 
 static const aegis256_implementation *implementation = &aegis256_soft_implementation;
 
+#ifdef _WIN32
+extern __declspec (dllexport) size_t crypto_aead_aegis256_maclen = crypto_aead_aegis256_ABYTES;
+#else
+const size_t crypto_aead_aegis256_maclen = crypto_aead_aegis256_ABYTES;
+#endif
+
 size_t
 crypto_aead_aegis256_keybytes(void)
 {
@@ -42,7 +48,7 @@ crypto_aead_aegis256_npubbytes(void)
 size_t
 crypto_aead_aegis256_abytes(void)
 {
-    return crypto_aead_aegis256_ABYTES;
+    return crypto_aead_aegis256_maclen;
 }
 
 size_t
@@ -70,7 +76,7 @@ crypto_aead_aegis256_encrypt(unsigned char *c, unsigned long long *clen_p, const
         crypto_aead_aegis256_encrypt_detached(c, c + mlen, NULL, m, mlen, ad, adlen, nsec, npub, k);
     if (clen_p != NULL) {
         if (ret == 0) {
-            clen = mlen + crypto_aead_aegis256_ABYTES;
+            clen = mlen + crypto_aead_aegis256_maclen;
         }
         *clen_p = clen;
     }
@@ -86,14 +92,14 @@ crypto_aead_aegis256_decrypt(unsigned char *m, unsigned long long *mlen_p, unsig
     unsigned long long mlen = 0ULL;
     int                ret  = -1;
 
-    if (clen >= crypto_aead_aegis256_ABYTES) {
-        ret = crypto_aead_aegis256_decrypt_detached(m, nsec, c, clen - crypto_aead_aegis256_ABYTES,
-                                                    c + clen - crypto_aead_aegis256_ABYTES, ad,
+    if (clen >= crypto_aead_aegis256_maclen) {
+        ret = crypto_aead_aegis256_decrypt_detached(m, nsec, c, clen - crypto_aead_aegis256_maclen,
+                                                    c + clen - crypto_aead_aegis256_maclen, ad,
                                                     adlen, npub, k);
     }
     if (mlen_p != NULL) {
         if (ret == 0) {
-            mlen = clen - crypto_aead_aegis256_ABYTES;
+            mlen = clen - crypto_aead_aegis256_maclen;
         }
         *mlen_p = mlen;
     }
@@ -107,7 +113,7 @@ crypto_aead_aegis256_encrypt_detached(unsigned char *c, unsigned char *mac,
                                       unsigned long long adlen, const unsigned char *nsec,
                                       const unsigned char *npub, const unsigned char *k)
 {
-    const size_t maclen = crypto_aead_aegis256_ABYTES;
+    const size_t maclen = crypto_aead_aegis256_maclen;
 
     if (maclen_p != NULL) {
         *maclen_p = maclen;
@@ -126,7 +132,7 @@ crypto_aead_aegis256_decrypt_detached(unsigned char *m, unsigned char *nsec, con
                                       const unsigned char *ad, unsigned long long adlen,
                                       const unsigned char *npub, const unsigned char *k)
 {
-    const size_t maclen = crypto_aead_aegis256_ABYTES;
+    const size_t maclen = crypto_aead_aegis256_maclen;
 
     if (clen > crypto_aead_aegis256_MESSAGEBYTES_MAX ||
         adlen > crypto_aead_aegis256_MESSAGEBYTES_MAX) {
