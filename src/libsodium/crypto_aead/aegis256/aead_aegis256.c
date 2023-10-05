@@ -21,7 +21,7 @@
 
 static const aegis256_implementation *implementation = &aegis256_soft_implementation;
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined (_LIB)
 extern __declspec (dllexport) size_t crypto_aead_aegis256_maclen = crypto_aead_aegis256_ABYTES;
 #else
 const size_t crypto_aead_aegis256_maclen = crypto_aead_aegis256_ABYTES;
