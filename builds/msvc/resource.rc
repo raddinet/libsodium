@@ -8,12 +8,12 @@
 #define LIBSODIUM_VERSION_BIN 1,0,21,0
 
 //specify the product name for the dlls based on the platform we are compiling for
-#if defined(ARM64)
-    #define LIBSODIUM_PRODUCT_NAME "libsodium (AArch64)"
-#elif defined(x64)
+#if defined(x64)
     #define LIBSODIUM_PRODUCT_NAME "libsodium (x86-64)"
 #elif defined(Win32)
     #define LIBSODIUM_PRODUCT_NAME "libsodium (x86-32)"
+#elif defined(ARM64)
+    #define LIBSODIUM_PRODUCT_NAME "libsodium (AArch64)"
 #else
     #define LIBSODIUM_PRODUCT_NAME "libsodium"
 #endif

@@ -1,11 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <None Include="..\..\..\..\packaging\nuget\package.bat" />
-    <None Include="..\..\..\..\packaging\nuget\package.config" />
-    <None Include="..\..\..\..\packaging\nuget\package.gsl" />
-    <None Include="..\..\..\..\packaging\nuget\package.nuspec" />
-    <None Include="..\..\..\..\packaging\nuget\package.targets" />
+    <None Include="..\..\..\..\packaging\nuget\package.bat">
+      <Filter>packaging</Filter>
+    </None>
+    <None Include="..\..\..\..\packaging\nuget\package.gsl">
+      <Filter>packaging</Filter>
+    </None>
+    <None Include="..\..\..\..\packaging\nuget\package.nuspec">
+      <Filter>packaging</Filter>
+    </None>
+    <None Include="..\..\..\..\packaging\nuget\package.targets">
+      <Filter>packaging</Filter>
+    </None>
+    <None Include="..\..\..\..\packaging\nuget\package.config">
+      <Filter>packaging</Filter>
+    </None>
+    <Xml Include="..\..\..\..\packaging\nuget\package.xml">
+      <Filter>packaging</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\resource.rc" />
@@ -808,7 +821,6 @@
     <ClInclude Include="..\..\..\..\src\libsodium\crypto_core\ed25519\ref10\fe_51\base.h">
       <Filter>crypto_core\ed25519\ref10\fe_51</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="crypto_aead">
@@ -1075,8 +1087,5 @@
     <Filter Include="sodium">
       <UniqueIdentifier>{5dfc520b-f690-3d5f-a86a-8b667f2e7490}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\..\..\packaging\nuget\package.xml" />
   </ItemGroup>
 </Project>
