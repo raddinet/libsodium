@@ -935,6 +935,7 @@ crypto_aead_aes256gcm_decrypt_detached_afternm(unsigned char *m, unsigned char *
         memset(m, 0xd0, m_len);
         return -1;
     }
+    ACQUIRE_FENCE;
     return 0;
 }
 
@@ -969,6 +970,7 @@ crypto_aead_aes256gcm_decrypt_detached(unsigned char *m, unsigned char *nsec,
                                        const unsigned char *k)
 {
     CRYPTO_ALIGN(16) crypto_aead_aes256gcm_state st;
+    int                                          ret;
 
     PREFETCH_WRITE(m);
     PREFETCH_READ(c);
@@ -976,8 +978,11 @@ crypto_aead_aes256gcm_decrypt_detached(unsigned char *m, unsigned char *nsec,
 
     crypto_aead_aes256gcm_beforenm(&st, k);
 
-    return crypto_aead_aes256gcm_decrypt_detached_afternm(
+    ret = crypto_aead_aes256gcm_decrypt_detached_afternm(
         m, nsec, c, clen, mac, ad, adlen, npub, (const crypto_aead_aes256gcm_state *) &st);
+    sodium_memzero(&st, sizeof st);
+
+    return ret;
 }
 
 int

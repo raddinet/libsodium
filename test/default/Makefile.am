@@ -31,20 +31,28 @@ EXTRA_DIST = \
 	core_ed25519.exp \
 	core_ed25519_h2c.exp \
 	core_ristretto255.exp \
+	core_ristretto255_h2c.exp \
 	core1.exp \
 	core2.exp \
 	core3.exp \
 	core4.exp \
 	core5.exp \
 	core6.exp \
+	core_keccak1600.exp \
 	ed25519_convert.exp \
 	generichash.exp \
 	generichash2.exp \
 	generichash3.exp \
 	hash.exp \
 	hash3.exp \
+	hash_sha3256.exp \
+	hash_sha3512.exp \
+	ipcrypt.exp \
 	kdf.exp \
 	kdf_hkdf.exp \
+	kem.exp \
+	kem_mlkem768.exp \
+	kem_xwing.exp \
 	keygen.exp \
 	kx.exp \
 	metamorphic.exp \
@@ -86,7 +94,11 @@ EXTRA_DIST = \
 	stream3.exp \
 	stream4.exp \
 	verify1.exp \
-	xchacha20.exp
+	xchacha20.exp \
+	xof_shake128.exp \
+	xof_shake256.exp \
+	xof_turboshake128.exp \
+	xof_turboshake256.exp
 
 DISTCLEANFILES = \
 	aead_aegis128l.res \
@@ -115,12 +127,14 @@ DISTCLEANFILES = \
 	core_ed25519.res \
 	core_ed25519_h2c.res \
 	core_ristretto255.res \
+	core_ristretto255_h2c.res \
 	core1.res \
 	core2.res \
 	core3.res \
 	core4.res \
 	core5.res \
 	core6.res \
+	core_keccak1600.res \
 	ed25519_convert.res \
 	generichash.res \
 	generichash2.res \
@@ -128,8 +142,14 @@ DISTCLEANFILES = \
 	hash.res \
 	hash2.res \
 	hash3.res \
+	hash_sha3256.res \
+	hash_sha3512.res \
+	ipcrypt.res \
 	kdf.res \
 	kdf_hkdf.res \
+	kem.res \
+	kem_mlkem768.res \
+	kem_xwing.res \
 	keygen.res \
 	kx.res \
 	metamorphic.res \
@@ -171,7 +191,11 @@ DISTCLEANFILES = \
 	stream3.res \
 	stream4.res \
 	verify1.res \
-	xchacha20.res
+	xchacha20.res \
+	xof_shake128.res \
+	xof_shake256.res \
+	xof_turboshake128.res \
+	xof_turboshake256.res
 
 AM_CPPFLAGS = \
 	-DTEST_SRCDIR=\"@srcdir@\" \
@@ -213,13 +237,20 @@ TESTS_TARGETS = \
 	core4 \
 	core5 \
 	core6 \
+	core_keccak1600 \
 	ed25519_convert \
 	generichash \
 	generichash2 \
 	generichash3 \
 	hash \
 	hash3 \
+	hash_sha3256 \
+	hash_sha3512 \
+	ipcrypt \
 	kdf \
+	kem \
+	kem_mlkem768 \
+	kem_xwing \
 	keygen \
 	kx \
 	metamorphic \
@@ -253,7 +284,11 @@ TESTS_TARGETS = \
 	stream2 \
 	stream3 \
 	stream4 \
-	verify1
+	verify1 \
+	xof_shake128 \
+	xof_shake256 \
+	xof_turboshake128 \
+	xof_turboshake256
 
 if !EMSCRIPTEN
 TESTS_TARGETS += \
@@ -346,6 +381,9 @@ core_ed25519_h2c_LDADD    = $(TESTS_LDADD)
 core_ristretto255_SOURCE  = cmptest.h core_ristretto255.c
 core_ristretto255_LDADD   = $(TESTS_LDADD)
 
+core_ristretto255_h2c_SOURCE  = cmptest.h core_ristretto255_h2c.c
+core_ristretto255_h2c_LDADD   = $(TESTS_LDADD)
+
 core1_SOURCE              = cmptest.h core1.c
 core1_LDADD               = $(TESTS_LDADD)
 
@@ -363,6 +401,9 @@ core5_LDADD               = $(TESTS_LDADD)
 
 core6_SOURCE              = cmptest.h core6.c
 core6_LDADD               = $(TESTS_LDADD)
+
+core_keccak1600_SOURCE    = cmptest.h core_keccak1600.c
+core_keccak1600_LDADD     = $(TESTS_LDADD)
 
 ed25519_convert_SOURCE    = cmptest.h ed25519_convert.c
 ed25519_convert_LDADD     = $(TESTS_LDADD)
@@ -382,11 +423,29 @@ hash_LDADD                = $(TESTS_LDADD)
 hash3_SOURCE              = cmptest.h hash3.c
 hash3_LDADD               = $(TESTS_LDADD)
 
+hash_sha3256_SOURCE       = cmptest.h hash_sha3256.c
+hash_sha3256_LDADD        = $(TESTS_LDADD)
+
+hash_sha3512_SOURCE       = cmptest.h hash_sha3512.c
+hash_sha3512_LDADD        = $(TESTS_LDADD)
+
+ipcrypt_SOURCE            = cmptest.h ipcrypt.c
+ipcrypt_LDADD             = $(TESTS_LDADD)
+
 kdf_SOURCE                = cmptest.h kdf.c
 kdf_LDADD                 = $(TESTS_LDADD)
 
 kdf_hkdf_SOURCE            = cmptest.h kdf_hkdf.c
 kdf_hkdf_LDADD             = $(TESTS_LDADD)
+
+kem_SOURCE                 = cmptest.h kem.c
+kem_LDADD                  = $(TESTS_LDADD)
+
+kem_mlkem768_SOURCE        = cmptest.h kem_mlkem768.c
+kem_mlkem768_LDADD         = $(TESTS_LDADD)
+
+kem_xwing_SOURCE           = cmptest.h kem_xwing.c
+kem_xwing_LDADD            = $(TESTS_LDADD)
 
 keygen_SOURCE             = cmptest.h keygen.c
 keygen_LDADD              = $(TESTS_LDADD)
@@ -514,11 +573,24 @@ verify1_LDADD             = $(TESTS_LDADD)
 xchacha20_SOURCE          = cmptest.h xchacha20.c
 xchacha20_LDADD           = $(TESTS_LDADD)
 
+xof_shake128_SOURCE       = cmptest.h xof_shake128.c
+xof_shake128_LDADD        = $(TESTS_LDADD)
+
+xof_shake256_SOURCE       = cmptest.h xof_shake256.c
+xof_shake256_LDADD        = $(TESTS_LDADD)
+
+xof_turboshake128_SOURCE  = cmptest.h xof_turboshake128.c
+xof_turboshake128_LDADD   = $(TESTS_LDADD)
+
+xof_turboshake256_SOURCE  = cmptest.h xof_turboshake256.c
+xof_turboshake256_LDADD   = $(TESTS_LDADD)
+
 if !MINIMAL
 TESTS_TARGETS += \
 	core_ed25519 \
 	core_ed25519_h2c \
 	core_ristretto255 \
+	core_ristretto255_h2c \
 	kdf_hkdf \
 	pwhash_scrypt \
 	pwhash_scrypt_ll \

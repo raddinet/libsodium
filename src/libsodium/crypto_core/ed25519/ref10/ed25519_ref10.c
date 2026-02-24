@@ -39,7 +39,7 @@ load_4(const unsigned char *in)
  * and 10*25.5 bit limbs elsewhere.
  *
  * Functions used elsewhere that are candidates for inlining are defined
- * via "private/curve25519_ref10.h".
+ * via "private/ed25519_ref10.h".
  */
 
 #ifdef HAVE_TI_MODE
@@ -62,7 +62,7 @@ fe25519_sqmul(fe25519 s, const int n, const fe25519 a)
 }
 
 /*
- * Inversion - returns 0 if z=0
+ * Inversion - sets out to 0 if z=0
  */
 void
 fe25519_invert(fe25519 out, const fe25519 z)
@@ -397,7 +397,7 @@ ge25519_frombytes_negate_vartime(ge25519_p3 *h, const unsigned char *s)
         fe25519_mul(h->X, h->X, fe25519_sqrtm1);
     }
 
-    if (fe25519_isnegative(h->X) == (s[31] >> 7)) {
+    if (fe25519_isnegative(h->X) == (s[31] >> 7)) { /* vartime function - compiler optimization is fine */
         fe25519_neg(h->X, h->X);
     }
     fe25519_mul(h->T, h->X, h->Y);
@@ -1141,10 +1141,13 @@ int
 ge25519_is_on_main_subgroup(const ge25519_p3 *p)
 {
     ge25519_p3 pl;
+    fe25519    t;
 
     ge25519_mul_l(&pl, p);
 
-    return fe25519_iszero(pl.X);
+    fe25519_sub(t, pl.Y, pl.Z);
+
+    return fe25519_iszero(pl.X) & fe25519_iszero(t);
 }
 
 int
@@ -1167,24 +1170,17 @@ ge25519_is_canonical(const unsigned char *s)
 int
 ge25519_has_small_order(const ge25519_p3 *p)
 {
-    fe25519 recip;
-    fe25519 x;
-    fe25519 x_neg;
-    fe25519 y;
     fe25519 y_sqrtm1;
     fe25519 c;
     int     ret = 0;
 
-    fe25519_invert(recip, p->Z);
-    fe25519_mul(x, p->X, recip);
-    ret |= fe25519_iszero(x);
-    fe25519_mul(y, p->Y, recip);
-    ret |= fe25519_iszero(y);
-    fe25519_neg(x_neg, p->X);
-    fe25519_mul(y_sqrtm1, y, fe25519_sqrtm1);
-    fe25519_sub(c, y_sqrtm1, x);
+    ret |= fe25519_iszero(p->X);
+    ret |= fe25519_iszero(p->Y);
+    ret |= fe25519_iszero(p->Z);
+    fe25519_mul(y_sqrtm1, p->Y, fe25519_sqrtm1);
+    fe25519_sub(c, y_sqrtm1, p->X);
     ret |= fe25519_iszero(c);
-    fe25519_sub(c, y_sqrtm1, x_neg);
+    fe25519_add(c, y_sqrtm1, p->X);
     ret |= fe25519_iszero(c);
 
     return ret;
@@ -2698,7 +2694,7 @@ ge25519_from_uniform(unsigned char s[32], const unsigned char r[32])
     unsigned char x_sign;
 
     memcpy(s, r, 32);
-    x_sign = s[31] >> 7;
+    x_sign = ((s[31] >> 5) ^ optblocker_u8) >> 2;
     s[31] &= 0x7f;
     fe25519_frombytes(r_fe, s);
 
@@ -2728,7 +2724,8 @@ fe25519_reduce64(fe25519 fe_f, const unsigned char h[64])
     gl[31] &= 0x7f;
     fe25519_frombytes(fe_f, fl);
     fe25519_frombytes(fe_g, gl);
-    fe_f[0] += (h[31] >> 7) * 19 + (h[63] >> 7) * 722;
+    fe_f[0] += (((h[31] >> 5) ^ optblocker_u8) >> 2) * 19 +
+     (((h[63] >> 5) ^ optblocker_u8) >> 2) * 722;
     for (i = 0; i < sizeof (fe25519) / sizeof fe_f[0]; i++) {
         fe_f[i] += 38 * fe_g[i];
     }
@@ -2811,7 +2808,7 @@ ristretto255_is_canonical(const unsigned char *s)
     }
     c = (((unsigned int) c) - 1U) >> 8;
     d = (0xed - 1U - (unsigned int) s[0]) >> 8;
-    e = s[31] >> 7;
+    e = ((s[31] >> 5) ^ optblocker_u8) >> 2;
 
     return 1 - (((c & d) | e | s[0]) & 1);
 }
